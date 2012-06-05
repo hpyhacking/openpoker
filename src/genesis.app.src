@@ -1,0 +1,12 @@
+{application, genesis,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { genesis_app, []}},
+  {env, []}
+ ]}.
