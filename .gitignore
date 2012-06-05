@@ -4,3 +4,6 @@ priv
 *.o
 *.beam
 *.plt
+ebin
+log
+Mnesia*
