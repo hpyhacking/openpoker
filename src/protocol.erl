@@ -112,10 +112,10 @@ read(<<?CMD_UNWATCH, Bin/binary>>) ->
   unpickle(record(cmd_unwatch, {game(), internal(), internal()}), Bin);
 
 read(<<?CMD_JOIN, Bin/binary>>) ->
-  unpickle(record(cmd_join, {game(), sn(), buyin(), internal(), internal(), internal(), internal(), internal(), internal(), internal()}), Bin);
+  unpickle(record(cmd_join, {game(), sn(), buyin(), internal(), internal(), internal(), internal(), internal(), internal()}), Bin);
 
 read(<<?CMD_LEAVE, Bin/binary>>) ->
-  unpickle(record(cmd_leave, {game(), internal(), internal(), internal(), internal()}), Bin);
+  unpickle(record(cmd_leave, {game(), internal(), internal(), internal()}), Bin);
 
 read(<<?CMD_RAISE, Bin/binary>>) ->
   unpickle(record(cmd_raise, {game(), amount(), internal(), internal(), internal()}), Bin);
@@ -235,10 +235,10 @@ write(R) when is_record(R, cmd_unwatch) ->
   [?CMD_UNWATCH | pickle(record(cmd_unwatch, {game(), internal(), internal()}), R)];
 
 write(R) when is_record(R, cmd_join) ->
-  [?CMD_JOIN | pickle(record(cmd_join, {game(), sn(), buyin(), internal(), internal(), internal(), internal(), internal(), internal(), internal()}), R)];
+  [?CMD_JOIN | pickle(record(cmd_join, {game(), sn(), buyin(), internal(), internal(), internal(), internal(), internal(), internal()}), R)];
 
 write(R) when is_record(R, cmd_leave) ->
-  [?CMD_LEAVE | pickle(record(cmd_leave, {game(), internal(), internal(), internal(), internal()}), R)];
+  [?CMD_LEAVE | pickle(record(cmd_leave, {game(), internal(), internal(), internal()}), R)];
 
 write(R) when is_record(R, cmd_raise) ->
   [?CMD_RAISE | pickle(record(cmd_raise, {game(), amount(), internal(), internal(), internal()}), R)];

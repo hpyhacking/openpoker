@@ -119,7 +119,7 @@ join_leave_acount_test() ->
         %% check db
         PId = ?DEF_PLAYER_ID,
         ?assertMatch([#tab_inplay{pid = PId, inplay = 500}], mnesia:dirty_read(tab_inplay, PId)),
-        ?assertMatch([#tab_buyin_log{aid = "root", pid = PId, gid = 1, amt = -500, cash = -500, credit = 1000}], mnesia:dirty_index_read(tab_buyin_log, PId, pid)),
+        ?assertMatch([#tab_buyin_log{pid = PId, gid = 1, amt = -500, cash = -500, credit = 1000}], mnesia:dirty_index_read(tab_buyin_log, PId, pid)),
         ?assertMatch([#tab_player_info{credit = 1000, cash = -500}], mnesia:dirty_read(tab_player_info, PId)),
         %% check player info
         ?assertMatch(#tab_player_info{credit = 1000, cash = -500}, player:ctx(PId, info)),

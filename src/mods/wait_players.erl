@@ -33,6 +33,6 @@ wait_for_players(_R, Ctx) ->
   {skip, Ctx}.
 
 clear_out_players([], _Ctx) -> ok;
-clear_out_players([#seat{pid = PId, sn = SN, agent = Agent}|T], Ctx) ->
-  game:leave(self(), #cmd_leave{game = Ctx#texas.gid, pid = PId, sn = SN, agent = Agent}),
+clear_out_players([#seat{pid = PId, sn = SN}|T], Ctx) ->
+  game:leave(self(), #cmd_leave{game = Ctx#texas.gid, pid = PId, sn = SN}),
   clear_out_players(T, Ctx).

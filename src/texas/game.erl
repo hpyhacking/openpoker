@@ -120,7 +120,7 @@ dispatch(R = #cmd_leave{sn = SN, pid = PId}, Ctx = #texas{exp_seat = Exp, seats 
 
           ok = mnesia:delete_object(Inplay),
           ok = mnesia:write(#tab_buyin_log{
-              aid = R#cmd_leave.agent, pid = R#cmd_leave.pid, gid = Ctx#texas.gid, 
+              pid = R#cmd_leave.pid, gid = Ctx#texas.gid, 
               amt = Inplay#tab_inplay.inplay, cash = Info#tab_player_info.cash + Inplay#tab_inplay.inplay,
               credit = Info#tab_player_info.credit}),
           ok = mnesia:write(Info#tab_player_info{cash = Info#tab_player_info.cash + Inplay#tab_inplay.inplay})
@@ -222,7 +222,7 @@ bet({S = #seat{inplay = Inplay, bet = Bet, pid = PId}, Call, Raise}, Ctx = #texa
       [R] = mnesia:read(tab_inplay, PId, write),
       ok = mnesia:write(R#tab_inplay{inplay = Inplay - CostAmt}),
       ok = mnesia:write(#tab_turnover_log{
-          aid = S#seat.agent, pid = PId, game = Ctx#texas.gid,
+          pid = PId, game = Ctx#texas.gid,
           amt = 0 - CostAmt, cost = 0, inplay = Inplay - CostAmt})
   end,
   
@@ -244,7 +244,7 @@ reward(#hand{seat_sn = SN, pid = PId}, Amt, Ctx = #texas{seats = Seats}) when Am
       RewardInplay = R#tab_inplay.inplay + WinAmt,
       ok = mnesia:write(R#tab_inplay{inplay = R#tab_inplay.inplay + WinAmt}),
       ok = mnesia:write(#tab_turnover_log{
-          aid = Seat#seat.agent, pid = Seat#seat.pid, game = Ctx#texas.gid,
+          pid = Seat#seat.pid, game = Ctx#texas.gid,
           amt = WinAmt, cost = Amt - WinAmt, inplay = RewardInplay}),
       RewardInplay
   end,
@@ -356,7 +356,6 @@ do_join(R = #cmd_join{identity = Identity, proc = Process}, Seat = #seat{}, Ctx 
           identity = Identity,
           pid = R#cmd_join.pid,
           process = Process,
-          agent = R#cmd_join.agent,
           hand = hand:new(),
           bet = 0,
           inplay = R#cmd_join.buyin,
@@ -388,7 +387,7 @@ do_join(R = #cmd_join{identity = Identity, proc = Process}, Seat = #seat{}, Ctx 
           end,
 
           ok = mnesia:write(#tab_buyin_log{
-              aid = R#cmd_join.agent, pid = R#cmd_join.pid, gid = Ctx#texas.gid, 
+              pid = R#cmd_join.pid, gid = Ctx#texas.gid, 
               amt = 0 - R#cmd_join.buyin, cash = Info#tab_player_info.cash - R#cmd_join.buyin,
               credit = Info#tab_player_info.credit}),
           ok = mnesia:write(#tab_inplay{pid = R#cmd_join.pid, inplay = R#cmd_join.buyin}),
@@ -407,64 +406,3 @@ do_join(R = #cmd_join{identity = Identity, proc = Process}, Seat = #seat{}, Ctx 
       ?LOG([{game, error}, {join, R}, {ctx, Ctx}, {error, not_find_observer}]),
       Ctx
   end.
-
-
-%%%
-%%% unit test
-%%%
-
--ifdef(TEST).
--include_lib("eunit/include/eunit.hrl").
-
-start_test() ->
-  setup(),
-  game:start([{wait_players, []}, {restart, []}]),
-  ?assert(is_pid(?LOOKUP_GAME(1))).
-
-id_test() ->
-  setup(),
-  ?assertEqual(1, game:id()),
-  ?assertEqual(2, game:id()),
-  ?assertEqual(3, game:id()).
-
-list_test() ->
-  setup(),
-  Conf = #tab_game_config{module = game, mods = [{wait_players, []}], limit = no_limit, seat_count = 9, start_delay = 3000, required = 2, timeout = 1000, max = 2},
-  game:start(Conf),
-  ?assert(is_pid(?LOOKUP_GAME(1))),
-  ?assert(is_pid(?LOOKUP_GAME(2))),
-  timer:sleep(1000),
-
-  [#notify_game{}|[#notify_game{}|[]]] = game:list().
-
-info_test() ->
-  setup(),
-  Conf = #tab_game_config{module = game, mods = [{wait_players, []}], limit = no_limit, seat_count = 5, start_delay = 3000, required = 3, timeout = 1000, max = 1},
-  game:start(Conf),
-  ?assert(is_pid(?LOOKUP_GAME(1))),
-  #notify_game{require = R, seats = C} = game:info(?LOOKUP_GAME(1)),
-  ?assertEqual(3, R),
-  ?assertEqual(5, C).
-
-game_query_test() ->
-  ?assert(is_list(protocol:write(#cmd_query_game{}))).
-
-game_info_test() ->
-  ?assert(is_list(protocol:write(#notify_game{
-      game = 1,
-      name = <<"TEXAS_TABLE">>,
-      limit = #limit{min = 10, max = 400, small = 5, big = 10},
-      seats = 5,
-      require = 2,
-      joined = 1}
-    ))).
-
-setup() ->
-  catch mnesia:transaction(fun() ->
-        mnesia:foldl(fun(#tab_game_xref{process = Game}, _Acc) ->
-              gen_server:call(Game, kill)
-          end, [], tab_game_xref)
-    end
-  ),
-  schema:init().
--endif.

@@ -6,7 +6,6 @@
 -include("protocol.hrl").
 
 -record(pdata, { 
-    agent_timeout = 1000, %% player login success
     timer = ?UNDEF, 
     server = global:whereis_name(server),
     player = ?UNDEF 
@@ -15,8 +14,8 @@
 loop(connected, ?UNDEF) ->
   #pdata{timer = erlang:start_timer(?CONNECT_TIMEOUT, self(), ?MODULE)};
 
-loop({connected, AgentTimeout}, ?UNDEF) ->
-  #pdata{agent_timeout = AgentTimeout, timer = erlang:start_timer(?CONNECT_TIMEOUT, self(), ?MODULE)};
+loop({connected, _Timeout}, ?UNDEF) ->
+  #pdata{timer = erlang:start_timer(?CONNECT_TIMEOUT, self(), ?MODULE)};
 
 loop(disconnected, _Data = #pdata{}) -> ok;
 
@@ -43,8 +42,6 @@ loop({protocol, #cmd_login{identity = Identity, password = Password}}, Data) ->
       err(?ERR_UNAUTH);
     {ok, player_disable} ->
       err(?ERR_PLAYER_DISABLE);
-    {ok, agent_disable} ->
-      err(?ERR_AGENT_DISABLE);
     {ok, pass, Info} ->
       % create player process by client process, 
       % receive {'EXIT'} when player process error

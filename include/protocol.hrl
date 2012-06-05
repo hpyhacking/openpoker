@@ -31,10 +31,10 @@
 -record(cmd_unwatch,          { game, '|', player }).
 
 -define(CMD_JOIN,             33).
--record(cmd_join,             { game, sn, buyin, '|', pid, identity, nick, photo, agent, proc }).
+-record(cmd_join,             { game, sn, buyin, '|', pid, identity, nick, photo, proc }).
 
 -define(CMD_LEAVE,            34).
--record(cmd_leave,            { game, '|', pid, sn, agent }).
+-record(cmd_leave,            { game, '|', pid, sn}).
 
 -define(CMD_RAISE,            35).
 -record(cmd_raise,            { game, amount, '|', pid, sn }).
