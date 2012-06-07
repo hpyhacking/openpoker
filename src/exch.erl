@@ -4,7 +4,7 @@
 -export([behaviour_info/1]).
 -export([init/1, handle_call/3, handle_cast/2, 
          handle_info/2, terminate/2, code_change/3]).
--export([start/3, stop/2, cast/2, call/2]).
+-export([start/3, stop/1, stop/2, cast/2, call/2]).
 
 -include("common.hrl").
 -include("schema.hrl").
@@ -35,6 +35,9 @@ behaviour_info(callbacks) -> [
 start(Module, Conf, Mods) ->
   Id = Module:id(),
   {ok, _PID} = gen_server:start({global, {Module, Id}}, exch, [Module, Id, Conf, Mods], []).
+
+stop(Pid) when is_pid(Pid) ->
+  gen_server:cast(Pid, stop).
 
 stop(Module, Id) when is_number(Id) ->
   gen_server:cast({global, {Module, Id}}, stop).

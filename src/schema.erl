@@ -74,21 +74,3 @@ setup_counters()->
 
 setup_games() ->
   ok.
-
-load_test_env() ->
-  case mnesia:system_info(is_running) of
-    yes ->
-      TabLists = [tab_game_xref, tab_player, tab_player_info, 
-        tab_inplay, tab_game_config, tab_counter, tab_turnover_log, tab_buyin_log],
-      lists:map(fun(Table) -> {atomic, ok} = mnesia:clear_table(Table) end, TabLists);
-    no ->
-      Node = [node()],
-      mnesia:delete_schema(Node),
-      mnesia:create_schema(Node),
-
-      timer:sleep(100),
-
-      mnesia:start(),
-      rebuild_core_table(Node),
-      reload_core_default_data()
-  end.

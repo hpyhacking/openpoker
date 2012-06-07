@@ -2,7 +2,7 @@
 -behaviour(exch).
 
 -export([id/0, init/2, stop/1, dispatch/2, call/2]).
--export([start/0, start/1, start/2]).
+-export([start/0, start/1, start_conf/2]).
 
 -export([ctx/1, state/1]).
 
@@ -181,25 +181,29 @@ dispatch(_, Ctx) ->
 
 start() ->
   Fun = fun(R = #tab_game_config{max = Max}, _Acc) ->
-      start(R, Max)
+      start_conf(R, Max)
   end, 
 
   ok = mnesia:wait_for_tables([tab_game_config], ?WAIT_TABLE),
-  {atomic, _Result} = mnesia:transaction(fun() -> mnesia:foldl(Fun, nil, tab_game_config) end).
+  {atomic, Result} = mnesia:transaction(fun() -> mnesia:foldl(Fun, nil, tab_game_config) end),
+  Result.
 
 start(Mods) when is_list(Mods)->
   Conf = #tab_game_config{id = 1, module = game, mods = Mods, limit = no_limit, seat_count = 9, start_delay = 3000, required = 2, timeout = 1000, max = 1},
-  start(Conf, 1);
+  start_conf(Conf, 1);
 
 start(Conf = #tab_game_config{max = Max}) ->
-  start(Conf, Max).
+  start_conf(Conf, Max).
 
-start(_Conf, 0) -> ok;
-start(Conf = #tab_game_config{module = Module, mods = Mods}, N) when is_list(Mods) ->
-  exch:start(Module, Conf, Mods),
-  start(Conf, N - 1);
-start(Conf = #tab_game_config{}, N) ->
-  start(Conf#tab_game_config{mods = default_mods()}, N).
+start_conf(Conf, N) -> 
+  start_conf(Conf, N, []).
+
+start_conf(_Conf, 0, L) -> L;
+start_conf(Conf = #tab_game_config{module = Module, mods = Mods}, N, L) when is_list(Mods) ->
+  {ok, Pid} = exch:start(Module, Conf, Mods),
+  start_conf(Conf, N - 1, L ++ [Pid]);
+start_conf(Conf = #tab_game_config{}, N, L) ->
+  start_conf(Conf#tab_game_config{mods = default_mods()}, N, L).
 
 %% check
 bet({R = #seat{}, Amt}, Ctx = #texas{}) ->
