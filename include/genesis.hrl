@@ -1,0 +1,4 @@
+-include("common.hrl").
+-include("game.hrl").
+-include("schema.hrl").
+-include("protocol.hrl").

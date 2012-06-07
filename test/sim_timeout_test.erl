@@ -29,12 +29,7 @@ watch_empty_game_test() ->
     end).
 
 run_by_login_two_players(Fun) ->
-  stopped = mnesia:stop(),
-  ok = mnesia:delete_schema([node()]),
-  ok = mnesia:create_schema([node()]),
-  ok = mnesia:start(),
-  schema:rebuild_core(),
-
+  schema_test:init(),
   mnesia:dirty_write(sim_client:player(?JACK)),
   mnesia:dirty_write(sim_client:player(?TOMMY)),
 

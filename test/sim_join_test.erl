@@ -1,16 +1,10 @@
--module(sim_join).
--compile([export_all]).
-
--include("common.hrl").
--include("schema.hrl").
--include("protocol.hrl").
--include("game.hrl").
+-module(sim_join_test).
+-include("genesis.hrl").
+-include("genesis_test.hrl").
 
 -define(DEF_PLAYER, sim_client:player(jack)).
 -define(DEF_PLAYER_ID, (sim_client:player(jack))#tab_player_info.pid).
 -define(DEF_PLAYER_IDENTITY, (sim_client:player(jack))#tab_player_info.identity).
-
--include_lib("eunit/include/eunit.hrl").
 
 info_and_balance_query_test() ->
   run_by_login(fun() ->
@@ -50,19 +44,20 @@ seat_query_test() ->
     end
   ).
 
-watch_test() ->
-  run_by_login(fun() ->
-        start_game(),
-        send(#cmd_query_seats{game = 1}),
-        ?assertMatch(9, length(box())),
-        ?assertMatch(#texas{observers = []}, game:ctx(1)),
-        send(#cmd_watch{game = 1}),
-        ?assertMatch(#notify_game_detail{stage = ?GS_CANCEL, pot = 0, joined = 0, seats = 9}, head()),
-        [H|_] = (game:ctx(1))#texas.observers,
-        ?assertMatch("jack", element(1, H)),
-        ?assert(is_pid(element(2, H)))
-    end
-  ).
+sim_join_test_() -> {spawn, {setup, fun setup/0, fun cleanup/1, [
+        fun watch/0
+      ]}}.
+
+watch() ->
+  start_game(),
+  send(#cmd_query_seats{game = 1}),
+  ?assertMatch(9, length(box())),
+  ?assertMatch(#texas{observers = []}, game:ctx(1)),
+  send(#cmd_watch{game = 1}),
+  ?assertMatch(#notify_game_detail{stage = ?GS_CANCEL, pot = 0, joined = 0, seats = 9}, head()),
+  [H|_] = (game:ctx(1))#texas.observers,
+  ?assertMatch("jack", element(1, H)),
+  ?assert(is_pid(element(2, H))).
 
 unwatch_test() ->
   run_by_login(fun() ->
@@ -130,9 +125,22 @@ join_leave_acount_test() ->
     end
   ).
 
+setup() ->
+  schema_test:init(),
+  mnesia:dirty_write(?DEF_PLAYER),
+  sim_client:kill_games(),
+  sim_client:kill_player(?DEF_PLAYER_ID),
+  sim_client:start(?MODULE),
+  sim_client:send(?MODULE, #cmd_login{identity = list_to_binary(?DEF_PLAYER_IDENTITY), password = <<?DEF_PWD>>}),
+  ?assertMatch(#notify_player{}, sim_client:head(?MODULE)),
+  ?assertMatch(#notify_acount{}, sim_client:head(?MODULE)).
+
+cleanup(_) ->
+  sim_client:kill_games(),
+  sim_client:kill_player(?DEF_PLAYER_ID).
 
 run_by_login(Fun) ->
-  schema:init(),
+  schema_test:init(),
   mnesia:dirty_write(?DEF_PLAYER),
 
   sim_client:kill_games(),
@@ -151,9 +159,6 @@ start_game() ->
   Conf = #tab_game_config{module = game, mods = [{wait_players, []}], limit = Limit, seat_count = 9, start_delay = 3000, required = 2, timeout = 1000, max = 2},
   game:start(Conf).
   
-where() ->
-  sim_client:where(?MODULE).
-
 send(R) ->
   sim_client:send(?MODULE, R).
 

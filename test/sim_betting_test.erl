@@ -1,4 +1,4 @@
--module(sim_betting).
+-module(sim_betting_test).
 -compile([export_all]).
 
 -include("common.hrl").
@@ -264,7 +264,7 @@ run_by_login_two_players(Mods, Fun) ->
   run_by_login_players(Mods, ?TWO_PLAYERS, Fun).
 
 run_by_login_players(MixinMods, Players, Fun) ->
-  schema:init(),
+  schema_test:init(),
   mnesia:dirty_write(sim_client:player(?TOMMY)),
 
   sim_client:kill_games(),
@@ -284,7 +284,8 @@ run_by_login_players(MixinMods, Players, Fun) ->
   Conf = #tab_game_config{module = game, mods = Mods, limit = Limit, seat_count = 9, start_delay = ?DELAY, required = 2, timeout = 1000, max = 1},
     
   game:start(Conf),
-  Fun().
+  Fun(),
+  sim_client:kill_games().
 
 join_and_start_game(Players) ->
   ok = join_and_start_game(Players, 1),
@@ -327,4 +328,3 @@ set_sn([], Players) -> Players;
 set_sn([{Key, SN}|T], Players) ->
   lists:keyreplace(Key, 1, Players, {Key, SN}),
   set_sn(T, Players).
-
