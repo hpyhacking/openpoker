@@ -1,4 +1,4 @@
--module(sim_timeout).
+-module(sim_timeout_test).
 -compile([export_all]).
 
 -include("common.hrl").
@@ -29,7 +29,12 @@ watch_empty_game_test() ->
     end).
 
 run_by_login_two_players(Fun) ->
-  schema:init(),
+  stopped = mnesia:stop(),
+  ok = mnesia:delete_schema([node()]),
+  ok = mnesia:create_schema([node()]),
+  ok = mnesia:start(),
+  schema:rebuild_core(),
+
   mnesia:dirty_write(sim_client:player(?JACK)),
   mnesia:dirty_write(sim_client:player(?TOMMY)),
 
