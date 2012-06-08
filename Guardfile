@@ -1,23 +1,13 @@
-guard 'shell' do
-  watch(/include\/(.*)\.hrl/) do |m|
-    if system('rebar eunit')
-      Notifier.notify("SUCCESS", :title => "Genesis")
-    else
-      Notifier.notify("ERROR", :title => "Genesis", :image => :failed)
-    end
-  end
-  watch(/src\/(.*)\.erl/) do |m|
-    if system('rebar eunit')
-      Notifier.notify("SUCCESS", :title => "Genesis")
-    else
-      Notifier.notify("ERROR", :title => "Genesis", :image => :failed)
-    end
-  end
+guard :shell do
   watch(/test\/(.*)\.erl/) do |m|
-    if system('rebar eunit')
-      Notifier.notify("SUCCESS", :title => "Genesis")
+    if system("rebar eunit suite=#{m[1]}")
+      n "#{m[1]} is successful", 'EUnit', :success
     else
-      Notifier.notify("ERROR", :title => "Genesis", :image => :failed)
+      n "#{m[1]} is error", 'EUnit', :failed
     end
   end
+end
+
+guard :shell, :all_on_start => true do
+  system("rebar eunit")
 end
