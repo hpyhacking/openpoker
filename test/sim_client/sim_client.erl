@@ -1,6 +1,7 @@
 -module(sim_client).
--export([start/1, start_robot/1, stop/1, send/2, head/1, box/0, box/1, loopdata/2, player/2, loop/2, loop/3, robot_loop/2, robot_loop/3]).
+-export([start/1, start_robot/1, stop/1, send/2, head/1, box/0, box/1, loopdata/2, player/2, loop/2, loop/3, robot_loop/2, robot_loop/3, setup_players/1]).
 -include("genesis.hrl").
+-include("genesis_test.hrl").
 
 -record(pdata, {
     box = [],
@@ -25,9 +26,18 @@ start_robot(Key) ->
   true = register(Key, PID),
   PID.
 
-stop(Id) ->
-  catch whereis(Id) ! kill,
-  ?SLEEP.
+stop(Id) when is_pid(Id) ->
+  catch Id ! kill,
+  ?SLEEP;
+
+stop(Id) when is_atom(Id) ->
+  stop(whereis(Id)),
+  case player(Id, ?PLAYERS) of
+    undefined ->
+      ok;
+    Player ->
+      player:stop(Player#tab_player_info.pid)
+  end.
 
 send(Id, R) ->
   Id ! {send, R},
@@ -66,6 +76,19 @@ loopdata(Id, Key) ->
 
 player(Identity, Players) when is_atom(Identity) ->
   proplists:get_value(Identity, Players).
+
+setup_players(L) when is_list(L) ->
+  lists:map(fun ({Key, R}) ->
+        ?assertNot(is_pid(whereis(Key))),
+        Identity = list_to_binary(R#tab_player_info.identity),
+        mnesia:dirty_write(R),
+        sim_client:start(Key),
+        sim_client:send(Key, #cmd_login{identity = Identity, password = <<?DEF_PWD>>}),
+        ?assertMatch(#notify_player{}, sim_client:head(Key)),
+        ?assertMatch(#notify_acount{}, sim_client:head(Key)),
+        {Key, R}
+    end, L).
+
 
 %%%
 %%% callback
@@ -146,3 +169,4 @@ loop(Fun, LoopData, Data = #pdata{box = Box}) ->
       ND = Fun({msg, Msg}, LoopData),
       loop(Fun, ND, Data)
   end.
+

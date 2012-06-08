@@ -25,6 +25,6 @@ setup() ->
   game:start(Conf).
 
 cleanup([]) -> ok;
-cleanup([H|T]) ->
-  exch:stop(H),
+cleanup([{ok, Pid}|T]) ->
+  exch:stop(Pid),
   cleanup(T).

@@ -201,7 +201,7 @@ start_conf(Conf, N) ->
 start_conf(_Conf, 0, L) -> L;
 start_conf(Conf = #tab_game_config{module = Module, mods = Mods}, N, L) when is_list(Mods) ->
   {ok, Pid} = exch:start(Module, Conf, Mods),
-  start_conf(Conf, N - 1, L ++ [Pid]);
+  start_conf(Conf, N - 1, L ++ [{ok, Pid}]);
 start_conf(Conf = #tab_game_config{}, N, L) ->
   start_conf(Conf#tab_game_config{mods = default_mods()}, N, L).
 
@@ -369,6 +369,7 @@ do_join(R = #cmd_join{identity = Identity, proc = Process}, Seat = #seat{}, Ctx 
           nick = R#cmd_join.nick,
           photo = R#cmd_join.photo
         }, Seats),
+
 
       JoinMsg = #notify_join{
         game = Ctx#texas.gid,
