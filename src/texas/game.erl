@@ -272,12 +272,14 @@ broadcast(Msg, [{_, Process}|T]) ->
   player:notify(Process, Msg),
   broadcast(Msg, T).
 
+info(GId) when is_integer(GId) ->
+  gen_server:call(?LOOKUP_GAME(GId), info);
 info(Game) when is_pid(Game) ->
   gen_server:call(Game, info).
 
 list() ->
   Fun = fun(#tab_game_xref{process = Game}, Acc) ->
-      [info(Game) | Acc]
+      Acc ++ [info(Game)]
   end,
   {atomic, Result} = mnesia:transaction(fun() -> mnesia:foldl(Fun, [], tab_game_xref) end),
   Result.

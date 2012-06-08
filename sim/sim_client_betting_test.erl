@@ -1,31 +1,6 @@
--module(sim_betting_test).
--compile([export_all]).
-
--include("common.hrl").
--include("schema.hrl").
--include("protocol.hrl").
--include("game.hrl").
-
--include_lib("eunit/include/eunit.hrl").
-
--define(GAME, 1).
--define(GAME_CTX, game:ctx(1)).
--define(JACK, jack).
--define(JACK_ID, 1).
--define(TOMMY, tommy).
--define(TOMMY_ID, 2).
--define(FOO, foo).
--define(FOO_ID, 3).
-
--define(TWO_PLAYERS, [{?JACK, ?JACK_ID}, {?TOMMY, ?TOMMY_ID}]).
--define(THREE_PLAYERS, ?TWO_PLAYERS ++ [{?FOO, ?FOO_ID}]).
-
--define(DELAY, 500).
--define(SLEEP, timer:sleep(?DELAY)).
-
-%%%
-%%% test case
-%%%
+-module(sim_client_betting_test).
+-include("genesis.hrl").
+-include("genesis_test.hrl").
 
 normal_betting_test() ->
   run_by_login_players([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}], ?THREE_PLAYERS, fun() ->
@@ -99,106 +74,6 @@ normal_betting_test() ->
         ?assertMatch(stop, game:state(?GAME))
     end).
 
-normal_betting_and_fold_test() ->
-  run_by_login_players([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}], ?THREE_PLAYERS, fun() ->
-        B = 1, SB = 2, BB = 3,
-        Players = set_sn([{?JACK, B}, {?TOMMY, SB}, {?FOO, BB}], ?THREE_PLAYERS),
-
-        join_and_start_game(Players),
-        check_blind(Players, B, SB, BB),
-
-        turnover_player_raise({?JACK, Players},  {20, 20, 80}, 0),
-        turnover_player_raise({?TOMMY, Players}, {10, 20, 80}, 0),
-        turnover_player_raise({?FOO, Players},   { 0, 20, 80}, 0),
-
-        check_notify_stage_end(?GS_PREFLOP, Players),
-        check_notify_stage(?GS_FLOP, Players),
-
-        turnover_player_raise({?TOMMY, Players}, { 0, 20, 80}, 20),
-        turnover_player_fold ({?FOO, Players},   {20, 20, 60}),
-        turnover_player_raise({?JACK, Players},  {20, 20, 60}, 0),
-
-        check_notify_stage_end(?GS_FLOP, Players),
-        ?assertMatch(#texas{joined = 3}, game:ctx(?GAME)),
-        ?assertMatch(stop, game:state(?GAME))
-    end).
-
-normal_betting_and_leave_test() ->
-  run_by_login_players([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}], ?THREE_PLAYERS, fun() ->
-        B = 1, SB = 2, BB = 3,
-        Players = set_sn([{?JACK, B}, {?TOMMY, SB}, {?FOO, BB}], ?THREE_PLAYERS),
-
-        join_and_start_game(Players),
-        check_blind(Players, B, SB, BB),
-
-        turnover_player_raise({?JACK, Players},  {20, 20, 80}, 0),
-        turnover_player_raise({?TOMMY, Players}, {10, 20, 80}, 0),
-        turnover_player_raise({?FOO, Players},   { 0, 20, 80}, 0),
-
-        check_notify_stage_end(?GS_PREFLOP, Players),
-        check_notify_stage(?GS_FLOP, Players),
-
-        turnover_player_raise({?TOMMY, Players}, { 0, 20, 80}, 20),
-        turnover_player_leave({?FOO, Players},   {20, 20, 60}),
-        turnover_player_raise({?JACK, proplists:delete(?FOO, Players)},  {20, 20, 60}, 0),
-
-        check_notify_stage_end(?GS_FLOP, proplists:delete(?FOO, Players)),
-        ?assertMatch(#texas{joined = 2}, game:ctx(?GAME)),
-        ?assertMatch(stop, game:state(?GAME))
-    end).
-
-headsup_betting_test() ->
-  run_by_login_two_players([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}], fun() ->
-        SB = 1, BB = 2,
-        Players = set_sn([{?JACK, SB}, {?TOMMY, BB}], ?TWO_PLAYERS),
-
-        join_and_start_game(Players),
-        check_blind(Players, SB, SB, BB),
-
-        turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
-        turnover_player_raise({?TOMMY, Players}, { 0, 20, 80}, 0),
-
-        check_notify_stage_end(?GS_PREFLOP, Players),
-        check_notify_stage(?GS_FLOP, Players),
-
-        turnover_player_raise({?TOMMY, Players}, {0, 20, 80}, 0),
-        turnover_player_raise({?JACK, Players},  {0, 20, 80}, 20),
-        turnover_player_raise({?TOMMY, Players}, {20, 20, 60}, 0),
-
-        check_notify_stage_end(?GS_FLOP, Players),
-        ?assertMatch(stop, game:state(?GAME))
-    end).
-
-headsup_betting_and_fold_test() ->
-  run_by_login_two_players([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}], fun() ->
-        SB = 1, BB = 2,
-        Players = set_sn([{?JACK, SB}, {?TOMMY, BB}], ?TWO_PLAYERS),
-
-        join_and_start_game(Players),
-        check_blind(Players, SB, SB, BB),
-
-        turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
-        turnover_player_fold({?TOMMY, Players},  { 0, 20, 80}),
-
-        ?assertMatch(#texas{joined = 2}, game:ctx(?GAME)),
-        ?assertMatch(stop, game:state(?GAME))
-    end).
-
-headsup_betting_and_leave_test() ->
-  run_by_login_two_players([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}], fun() ->
-        SB = 1, BB = 2,
-        Players = set_sn([{?JACK, SB}, {?TOMMY, BB}], ?TWO_PLAYERS),
-
-        join_and_start_game(Players),
-        check_blind(Players, SB, SB, BB),
-
-        turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
-        turnover_player_leave({?TOMMY, Players}, { 0, 20, 80}),
-
-
-        ?assertMatch(#texas{joined = 1}, game:ctx(?GAME)),
-        ?assertMatch(stop, game:state(?GAME))
-    end).
 
 %%%
 %%% private test until
@@ -328,3 +203,105 @@ set_sn([], Players) -> Players;
 set_sn([{Key, SN}|T], Players) ->
   lists:keyreplace(Key, 1, Players, {Key, SN}),
   set_sn(T, Players).
+
+
+%normal_betting_and_fold_test() ->
+  %run_by_login_players([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}], ?THREE_PLAYERS, fun() ->
+        %B = 1, SB = 2, BB = 3,
+        %Players = set_sn([{?JACK, B}, {?TOMMY, SB}, {?FOO, BB}], ?THREE_PLAYERS),
+
+        %join_and_start_game(Players),
+        %check_blind(Players, B, SB, BB),
+
+        %turnover_player_raise({?JACK, Players},  {20, 20, 80}, 0),
+        %turnover_player_raise({?TOMMY, Players}, {10, 20, 80}, 0),
+        %turnover_player_raise({?FOO, Players},   { 0, 20, 80}, 0),
+
+        %check_notify_stage_end(?GS_PREFLOP, Players),
+        %check_notify_stage(?GS_FLOP, Players),
+
+        %turnover_player_raise({?TOMMY, Players}, { 0, 20, 80}, 20),
+        %turnover_player_fold ({?FOO, Players},   {20, 20, 60}),
+        %turnover_player_raise({?JACK, Players},  {20, 20, 60}, 0),
+
+        %check_notify_stage_end(?GS_FLOP, Players),
+        %?assertMatch(#texas{joined = 3}, game:ctx(?GAME)),
+        %?assertMatch(stop, game:state(?GAME))
+    %end).
+
+%normal_betting_and_leave_test() ->
+  %run_by_login_players([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}], ?THREE_PLAYERS, fun() ->
+        %B = 1, SB = 2, BB = 3,
+        %Players = set_sn([{?JACK, B}, {?TOMMY, SB}, {?FOO, BB}], ?THREE_PLAYERS),
+
+        %join_and_start_game(Players),
+        %check_blind(Players, B, SB, BB),
+
+        %turnover_player_raise({?JACK, Players},  {20, 20, 80}, 0),
+        %turnover_player_raise({?TOMMY, Players}, {10, 20, 80}, 0),
+        %turnover_player_raise({?FOO, Players},   { 0, 20, 80}, 0),
+
+        %check_notify_stage_end(?GS_PREFLOP, Players),
+        %check_notify_stage(?GS_FLOP, Players),
+
+        %turnover_player_raise({?TOMMY, Players}, { 0, 20, 80}, 20),
+        %turnover_player_leave({?FOO, Players},   {20, 20, 60}),
+        %turnover_player_raise({?JACK, proplists:delete(?FOO, Players)},  {20, 20, 60}, 0),
+
+        %check_notify_stage_end(?GS_FLOP, proplists:delete(?FOO, Players)),
+        %?assertMatch(#texas{joined = 2}, game:ctx(?GAME)),
+        %?assertMatch(stop, game:state(?GAME))
+    %end).
+
+%headsup_betting_test() ->
+  %run_by_login_two_players([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}], fun() ->
+        %SB = 1, BB = 2,
+        %Players = set_sn([{?JACK, SB}, {?TOMMY, BB}], ?TWO_PLAYERS),
+
+        %join_and_start_game(Players),
+        %check_blind(Players, SB, SB, BB),
+
+        %turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
+        %turnover_player_raise({?TOMMY, Players}, { 0, 20, 80}, 0),
+
+        %check_notify_stage_end(?GS_PREFLOP, Players),
+        %check_notify_stage(?GS_FLOP, Players),
+
+        %turnover_player_raise({?TOMMY, Players}, {0, 20, 80}, 0),
+        %turnover_player_raise({?JACK, Players},  {0, 20, 80}, 20),
+        %turnover_player_raise({?TOMMY, Players}, {20, 20, 60}, 0),
+
+        %check_notify_stage_end(?GS_FLOP, Players),
+        %?assertMatch(stop, game:state(?GAME))
+    %end).
+
+%headsup_betting_and_fold_test() ->
+  %run_by_login_two_players([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}], fun() ->
+        %SB = 1, BB = 2,
+        %Players = set_sn([{?JACK, SB}, {?TOMMY, BB}], ?TWO_PLAYERS),
+
+        %join_and_start_game(Players),
+        %check_blind(Players, SB, SB, BB),
+
+        %turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
+        %turnover_player_fold({?TOMMY, Players},  { 0, 20, 80}),
+
+        %?assertMatch(#texas{joined = 2}, game:ctx(?GAME)),
+        %?assertMatch(stop, game:state(?GAME))
+    %end).
+
+%headsup_betting_and_leave_test() ->
+  %run_by_login_two_players([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}], fun() ->
+        %SB = 1, BB = 2,
+        %Players = set_sn([{?JACK, SB}, {?TOMMY, BB}], ?TWO_PLAYERS),
+
+        %join_and_start_game(Players),
+        %check_blind(Players, SB, SB, BB),
+
+        %turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
+        %turnover_player_leave({?TOMMY, Players}, { 0, 20, 80}),
+
+
+        %?assertMatch(#texas{joined = 1}, game:ctx(?GAME)),
+        %?assertMatch(stop, game:state(?GAME))
+    %end).

@@ -1,10 +1,7 @@
 -module(schema_test).
--compile([export_all]).
-
--include("schema.hrl").
--include("common.hrl").
-
--include_lib("eunit/include/eunit.hrl").
+-include("genesis.hrl").
+-include("genesis_test.hrl").
+-export([init/0]).
 
 init_test() ->
   init(),

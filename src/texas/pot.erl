@@ -20,13 +20,6 @@ new_side_pot(AllInAmt, Members) ->
               members = Members 
              }.
 
-new_side_pot(Pot = #side_pot{}) ->
-    new_side_pot(Pot#side_pot.all_in, Pot#side_pot.members);
-
-new_side_pot(AllInAmt) 
-  when is_number(AllInAmt) ->
-    new_side_pot(AllInAmt, gb_trees:empty()).
-
 new_side_pot() ->
     new_side_pot(0, gb_trees:empty()).
 
@@ -208,6 +201,13 @@ update_counter(Key, Amount, Tree) ->
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
+
+new_side_pot(Pot = #side_pot{}) ->
+    new_side_pot(Pot#side_pot.all_in, Pot#side_pot.members);
+
+new_side_pot(AllInAmt) 
+  when is_number(AllInAmt) ->
+    new_side_pot(AllInAmt, gb_trees:empty()).
 
 is_member(Pot, Player) 
   when is_record(Pot, side_pot) ->

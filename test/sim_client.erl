@@ -1,14 +1,6 @@
 -module(sim_client).
--compile([export_all]).
-
--include("common.hrl").
--include("game.hrl").
--include("schema.hrl").
--include("protocol.hrl").
--include_lib("eunit/include/eunit.hrl").
-
--define(SLEEP, timer:sleep(100)).
-
+-export([start/1, start_robot/1, stop/1, send/2, head/1, box/0, box/1, loopdata/2, player/2, loop/2, loop/3, robot_loop/2, robot_loop/3]).
+-include("genesis.hrl").
 
 -record(pdata, {
     box = [],
@@ -21,60 +13,22 @@
 %%% client
 %%%
 
-start() ->
-  start(sim_client).
-
-start(Id) when is_atom(Id) ->
-  kill(Id),
+start(Key) when is_atom(Key) ->
+  undefined = whereis(Key),
   PID = spawn(?MODULE, loop, [fun client:loop/2, self()]),
-  true = register(Id, PID),
+  true = register(Key, PID),
   PID.
 
-start_robot(Id) ->
-  kill(Id),
-  PID = spawn(?MODULE, robot_loop, [fun client:loop/2, Id]),
-  true = register(Id, PID),
+start_robot(Key) ->
+  undefined = whereis(Key),
+  PID = spawn(?MODULE, robot_loop, [fun client:loop/2, Key]),
+  true = register(Key, PID),
   PID.
 
-kill(Id) ->
-  catch where(Id) ! kill,
+stop(Id) ->
+  catch whereis(Id) ! kill,
   ?SLEEP.
 
-kill_games() ->
-  kill_games(1),
-  ?SLEEP.
-
-kill_games(N) ->
-  case kill_game(N) of
-    ok -> kill_games(N+1);
-    undefined -> ok
-  end.
-
-kill_game(Id) ->
-  case where_game(Id) of
-    Game when is_pid(Game) ->
-      gen_server:call(Game, kill);
-    undefined ->
-      undefined
-  end.
-
-kill_player(PId) ->
-  case where_player(PId) of
-    Player when is_pid(Player) ->
-      gen_server:call(Player, kill);
-    undefined ->
-      undefined
-  end.
-  
-where(Id) ->
-  whereis(Id).
-
-where_game(Id) ->
-  ?LOOKUP_GAME(Id).
-
-where_player(PId) ->
-  ?LOOKUP_PLAYER(PId).
-  
 send(Id, R) ->
   Id ! {send, R},
   ?SLEEP.
@@ -110,46 +64,12 @@ loopdata(Id, Key) ->
     500 -> exit(request_timeout)
   end.
 
-players() ->
-  [
-    {jack, #tab_player_info{
-        pid = 1, 
-        identity = "jack", 
-        nick = "Jack",
-        photo = "default",
-        password = ?DEF_HASH_PWD,
-        cash = 0,
-        credit = 1000,
-        disabled = false }},
-    {tommy, #tab_player_info{
-        pid = 2, 
-        identity = "tommy", 
-        nick = "Tommy",
-        photo = "default",
-        password = ?DEF_HASH_PWD,
-        cash = 0,
-        credit = 1000,
-        disabled = false }},
-    {foo, #tab_player_info{
-        pid = 3, 
-        identity = "foo", 
-        nick = "Foo",
-        photo = "default",
-        password = ?DEF_HASH_PWD,
-        cash = 0,
-        credit = 1000,
-        disabled = false }}
-  ].
-
-player(Identity) when is_atom(Identity) ->
-  {Identity, Data} = proplists:lookup(Identity, players()),
-  Data.
+player(Identity, Players) when is_atom(Identity) ->
+  proplists:get_value(Identity, Players).
 
 %%%
 %%% callback
 %%%
-
--define(PUTS(L), error_logger:info_report(L)).
 
 robot_loop(Fun, Id) ->
   LoopData = Fun({connected, 0}, ?UNDEF),
@@ -226,4 +146,3 @@ loop(Fun, LoopData, Data = #pdata{box = Box}) ->
       ND = Fun({msg, Msg}, LoopData),
       loop(Fun, ND, Data)
   end.
-

@@ -4,7 +4,7 @@
 -export([init/1, handle_call/3, handle_cast/2, 
          handle_info/2, terminate/2, code_change/3]).
 
--export([start/1, stop/1, stop/2, notify/2, cast/2, auth/2, logout/1]).
+-export([start/1, stop/1, notify/2, cast/2, auth/2, logout/1]).
 
 -export([client/1, info/1, balance/1]).
 
@@ -166,18 +166,14 @@ ctx(PId) ->
 ctx(PId, Type) ->
   gen_server:call(?LOOKUP_PLAYER(PId), Type).
 
-start(Identity) when is_list(Identity) ->
-  [R] = mnesia:dirty_index_read(tab_player_info, Identity, identity),
-  start(R);
-  
 start(R = #tab_player_info{pid = PId}) ->
-  gen_server:start(?PLAYER(PId), player, [R], []).
+  gen_server:start(?PLAYER(PId), ?MODULE, [R], []).
 
-stop(Identity) when is_list(Identity) ->
-  gen_server:cast(?PLAYER(Identity), stop).
+stop(PId) when is_integer(PId) ->
+  gen_server:cast(?PLAYER(PId), stop);
 
-stop(Identity, Reason) when is_list(Identity) ->
-  gen_server:cast(?PLAYER(Identity), {stop, Reason}).
+stop(Pid) when is_pid(Pid) ->
+  gen_server:cast(Pid, stop).
 
 notify(R) ->
   notify(self(), R).
