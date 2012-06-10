@@ -136,8 +136,6 @@ advance(Command, Msg, Data) ->
   ?LOG([{command, Command}, {msg, Msg}, {mod, hd(Data#pdata.mods)}, {state, Data#pdata.state}, {pdata, Data}]),
   {noreply, none}.
 
-trim_stack(Mod, L = [{LastMod, _}]) -> 
-  ?LOG([{not_found_mod, Mod}, {trim_to_last_mod, LastMod}]),
-  L;
+trim_stack(_Mod, L = [{_LastMod, _}]) -> L;
 trim_stack(Mod, L = [{H, _}|_]) when Mod == H -> L;
 trim_stack(Mod, [_|T]) -> trim_stack(Mod, T).

@@ -71,22 +71,6 @@ sample_test_() -> {setup, fun setup/0, fun cleanup/1, fun () ->
 setup_blind() ->
   setup([{blinds, []}]).
 
-setup() ->
-  setup([]).
-
-setup(MixinMods) ->
-  schema_test:init(),
-  sim_client:setup_players(?PLAYERS),
-
-  Mods = [{wait_players, []}] ++ MixinMods ++ [{stop, []}],
-  Limit = #limit{min = 100, max = 500, small = 5, big = 10},
-  Conf = #tab_game_config{module = game, mods = Mods, limit = Limit, seat_count = 9, start_delay = 1000, required = 2, timeout = 1000, max = 1},
-  game:start(Conf).
-
-cleanup(Games) ->
-  lists:foreach(fun ({ok, Pid}) -> exch:stop(Pid) end, Games),
-  lists:foreach(fun ({Key, _R}) -> sim_client:stop(Key) end, ?PLAYERS).
-
 join_and_start_game(Players) ->
   ok = join_and_start_game(Players, 1),
   ?SLEEP,
@@ -121,4 +105,20 @@ check_notify_join([_|T], 0, S) ->
 check_notify_join(Players = [{Key, _Id}|_], N, S) ->
   ?assertMatch(#notify_join{}, sim_client:head(Key)),
   check_notify_join(Players, N - 1, S).
+
+setup() ->
+  setup([]).
+
+setup(MixinMods) ->
+  schema_test:init(),
+  sim_client:setup_players(?PLAYERS),
+
+  Mods = [{wait_players, []}] ++ MixinMods ++ [{stop, []}],
+  Limit = #limit{min = 100, max = 500, small = 5, big = 10},
+  Conf = #tab_game_config{module = game, mods = Mods, limit = Limit, seat_count = 9, start_delay = 1000, required = 2, timeout = 1000, max = 1},
+  game:start(Conf).
+
+cleanup(Games) ->
+  lists:foreach(fun ({ok, Pid}) -> exch:stop(Pid) end, Games),
+  lists:foreach(fun ({Key, _R}) -> sim_client:stop(Key) end, ?PLAYERS).
 
