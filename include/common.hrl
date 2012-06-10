@@ -9,8 +9,8 @@
 -define(ERROR(L), error_logger:error_report([{debug, {?MODULE, ?LINE, self()}}] ++ L)).
 
 -define(LOOKUP_GAME(Id), global:whereis_name({game, Id})).
--define(PLAYER(Identity), {global, {player, Identity}}).
--define(LOOKUP_PLAYER(Identity), global:whereis_name({player, Identity})).
+-define(PLAYER(Id), {global, {player, Id}}).
+-define(LOOKUP_PLAYER(Id), global:whereis_name({player, Id})).
 
 -define(DEF_PWD, "def_pwd").
 -define(DEF_HASH_PWD, erlang:phash2(?DEF_PWD, 1 bsl 32)).

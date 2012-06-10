@@ -1,4 +1,4 @@
--module(sim_blinds).
+-module(sim_blinds_test).
 -include("genesis.hrl").
 -include("genesis_test.hrl").
 
