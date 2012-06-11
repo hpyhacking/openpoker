@@ -27,11 +27,8 @@ setup() ->
   lists:map(fun({_, R}) -> player:start(R) end, ?PLAYERS).
 
 cleanup([]) -> ok;
-cleanup([H|T]) ->
-  case H of
-    {ok, Pid} -> player:stop(Pid);
-    O -> ?LOG([{result, O}])
-  end,
+cleanup([{ok, Pid}|T]) -> 
+  player:stop(Pid),
   cleanup(T).
 
 plist(Id) ->

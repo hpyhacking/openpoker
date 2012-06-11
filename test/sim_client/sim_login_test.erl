@@ -42,14 +42,15 @@ login_error_test_() -> {setup, fun setup/0, [
       end]}.
 
 login_successful_test() ->
-  sim_client:start(?MODULE),
-  ?assert(is_pid(whereis(?MODULE))),
+  sim_client:start(?JACK),
+  ?assert(is_pid(whereis(?JACK))),
   Jack = sim_client:player(?JACK, ?PLAYERS),
   mnesia:dirty_write(Jack),
-  sim_client:send(?MODULE, #cmd_login{identity = <<"jack">>, password = <<"def_pwd">>}),
+  sim_client:send(?JACK, #cmd_login{identity = <<"jack">>, password = <<"def_pwd">>}),
   ?assert(is_pid(?LOOKUP_PLAYER(Jack#tab_player_info.pid))),
-  ?assertMatch(#notify_player{}, sim_client:head(?MODULE)),
-  ?assertMatch(#notify_acount{}, sim_client:head(?MODULE)).
+  ?assertMatch(#notify_player{}, sim_client:head(?JACK)),
+  ?assertMatch(#notify_acount{}, sim_client:head(?JACK)),
+  sim_client:stop(?JACK).
 
 setup() ->
   schema_test:init().
