@@ -89,7 +89,6 @@ setup_players(L) when is_list(L) ->
         {Key, R}
     end, L).
 
-
 %%%
 %%% callback
 %%%
@@ -169,4 +168,3 @@ loop(Fun, LoopData, Data = #pdata{box = Box}) ->
       ND = Fun({msg, Msg}, LoopData),
       loop(Fun, ND, Data)
   end.
-
