@@ -1,34 +1,10 @@
--module(sim_game).
--compile([export_all]).
-
--include("common.hrl").
--include("schema.hrl").
--include("protocol.hrl").
--include("game.hrl").
-
--include_lib("eunit/include/eunit.hrl").
-
--define(GAME, 1).
--define(GAME_CTX, game:ctx(1)).
--define(JACK, jack).
--define(JACK_ID, 1).
--define(TOMMY, tommy).
--define(TOMMY_ID, 2).
--define(FOO, foo).
--define(FOO_ID, 3).
+-module(sim_game_test).
+-include("genesis.hrl").
+-include("genesis_test.hrl").
 
 -define(TWO_PLAYERS, [{?JACK, ?JACK_ID}, {?TOMMY, ?TOMMY_ID}]).
 
--define(DELAY, 500).
--define(SLEEP, timer:sleep(?DELAY)).
-
-%%%
-%%% test case
-%%%
-
-rank_test() ->
-  run_by_login_two_players([
-      {blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C")]}, {deal_cards, [2, private]}, {deal_cards, [1, shared]}, {ranking, []}], fun() ->
+rank_test_() -> {setup, fun setup_with_rank/0, fun cleanup/1, fun () ->
         Players = ?TWO_PLAYERS,
         join_and_start_game(Players),
         check_blind(Players, 1, 1, 2),
@@ -37,13 +13,9 @@ rank_test() ->
         check_shared(1, Players),
         ?assertMatch(#notify_hand{rank = ?HC_PAIR, high1 = ?CF_FOUR}, sim_client:head(?JACK)),
         ?assertMatch(#notify_hand{rank = ?HC_THREE_KIND, high1 = ?CF_THREE}, sim_client:head(?TOMMY))
-    end).
+    end}.
 
-shutdown_test() ->
-  Mods = [{blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C 4C 4S ")]}, 
-    {deal_cards, [2, private]}, {deal_cards, [3, shared]}, {ranking, []},
-    {betting, [?GS_PREFLOP]}, {showdown, []}, {wait_players, []}],
-  run_by_login_two_players(Mods, fun() ->
+shutdown_test_() -> {setup, fun setup_with_shutdown/0, fun cleanup/1, fun () ->
         Players = ?TWO_PLAYERS,
         join_and_start_game(Players),
         check_blind(Players, 1, 1, 2),
@@ -76,16 +48,36 @@ shutdown_test() ->
         ?assertMatch([#tab_player_info{cash = -100}], mnesia:dirty_read(tab_player_info, ?TOMMY_ID)),
 
         check_notify_game_end(Players),
-
-        ?SLEEP,
-
+        timer:sleep(500),
         check_notify_game_cancel(Players),
         check_notify_leave(?TOMMY, Players)
-    end).
+    end}.
+
+setup_with_shutdown() ->
+  Mods = [{blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C 4C 4S ")]}, 
+    {deal_cards, [2, private]}, {deal_cards, [3, shared]}, {ranking, []},
+    {betting, [?GS_PREFLOP]}, {showdown, []}, {wait_players, []}],
+  setup(Mods).
+
+setup_with_rank() ->
+  setup([{blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C")]}, {deal_cards, [2, private]}, {deal_cards, [1, shared]}, {ranking, []}]).
+
+setup(MixinMods) ->
+  schema_test:init(),
+  sim_client:setup_players(?PLAYERS),
+  Mods = [{wait_players, []}] ++ MixinMods ++ [{stop, []}],
+  Limit = #limit{min = 100, max = 400, small = 10, big = 20},
+  Conf = #tab_game_config{module = game, mods = Mods, limit = Limit, seat_count = 9, start_delay = 500, required = 2, timeout = 1000, max = 1},
+  game:start(Conf).
+
+cleanup(Games) ->
+  lists:foreach(fun ({ok, Pid}) -> exch:stop(Pid) end, Games),
+  lists:foreach(fun ({Key, _R}) -> sim_client:stop(Key) end, ?PLAYERS).
 
 %%%
-%%% private test until
+%%% private
 %%%
+
 check_notify_game_end([]) -> ok;
 check_notify_game_end([{Key, _}|T]) ->
   ?assertMatch(#notify_game_end{game = ?GAME}, sim_client:head(Key)),
@@ -169,37 +161,9 @@ check_shared(N, S, L = [{Key, _Id}|_T]) ->
   ?assertMatch(#notify_shared{game = ?GAME}, sim_client:head(Key)),
   check_shared(N, S - 1, L).
 
-run_by_login_two_players(Fun) ->
-  run_by_login_players([], ?TWO_PLAYERS, Fun).
-
-run_by_login_two_players(Mods, Fun) ->
-  run_by_login_players(Mods, ?TWO_PLAYERS, Fun).
-
-run_by_login_players(MixinMods, Players, Fun) ->
-  schema:init(),
-
-  sim_client:kill_games(),
-
-  %% login Jack & Tommy
-  lists:map(fun({Key, Id}) ->
-        mnesia:dirty_write(sim_client:player(Key)),
-        Usr = list_to_binary((sim_client:player(Key))#tab_player_info.identity),
-        sim_client:kill_player(Id),
-        sim_client:start(Key),
-        sim_client:send(Key, #cmd_login{identity = Usr, password = <<?DEF_PWD>>}),
-        ?assertMatch(#notify_player{}, sim_client:head(Key)),
-        ?assertMatch(#notify_acount{}, sim_client:head(Key))
-    end, Players),
-  Mods = [{wait_players, []}] ++ MixinMods ++ [{stop, []}],
-  Limit = #limit{min = 100, max = 400, small = 10, big = 20},
-  Conf = #tab_game_config{module = game, mods = Mods, limit = Limit, seat_count = 9, start_delay = ?DELAY, required = 2, timeout = 1000, max = 1},
-    
-  game:start(Conf),
-  Fun().
-
 join_and_start_game(Players) ->
   ok = join_and_start_game(Players, 1),
-  ?SLEEP,
+  timer:sleep(500),
   Len = length(Players) - 1,
   [H|_] = lists:reverse(Players),
   check_notify_join(lists:delete(H, Players), Len, Len),
