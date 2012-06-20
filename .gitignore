@@ -8,3 +8,6 @@ ebin
 log
 Mnesia*
 *.dump
+
+rel/genesis/
+rel/log/
