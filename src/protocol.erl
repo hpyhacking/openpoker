@@ -1,5 +1,6 @@
 -module(protocol).
 -export([read/1, write/1]).
+-export([loop/2]).
 -export([id_to_player/1, id_to_game/1]).
 
 -import(pickle, [
@@ -60,6 +61,23 @@ limit() -> record(limit, {int(), int(), int(), int()}).
 
 game() -> game(get(pass_through)).
 player() -> player(get(pass_through)).
+
+loop(connected, ?UNDEF) ->
+  {0, 0, 0};
+
+loop(disconnected, {Sum, Good, Bad}) -> 
+  ?LOG([{sum, Sum}, {good, Good}, {bad, Bad}]),
+  ok;
+
+loop({recv, Bin}, {Sum, Good, Bad}) when is_binary(Bin) ->
+  case catch protocol:read(Bin) of
+    {'EXIT', {Reason, Stack}} ->
+      ?LOG([{recv, Bin}, {error, {Reason, Stack}}]),
+      {Sum + 1, Good, Bad + 1};
+    R ->
+      self() ! {send, list_to_binary(protocol:write(R))},
+      {Sum + 1, Good + 1, Bad}
+  end.
 
 %%%
 %%% private

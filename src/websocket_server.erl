@@ -1,26 +1,23 @@
 -module(websocket_server).
-
--export([start/3, stop/1, loop/2]).
+-export([start_link/3, start_link/4, stop/1, loop/2]).
 -export([generate_websocket_accept/1]).
 
 -include("common.hrl").
 
--define(WEBSOCKET_PREFIX,"HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n").
+-define(WEBSOCKET_PREFIX,
+  "HTTP/1.1 101 Switching Protocols\r\n" ++ 
+  "Upgrade: websocket\r\nConnection: Upgrade\r\n").
 
-%%%
-%%% client & callback
-%%%
-
-start(Host, Port, Loop) when is_list(Host), is_integer(Port) ->
+start_link(Host, Port, Loop) when is_list(Host), is_integer(Port) ->
+  start_link(?MODULE, Host, Port, Loop).
+  
+start_link(Name, Host, Port, Loop) when is_list(Host), is_integer(Port) ->
   Fun = fun (Socket) -> ?MODULE:loop(Socket, Loop) end,
-  Options = [{ip, Host}, {loop, Fun}, {port, Port}, {name, ?MODULE}],
+  Options = [{ip, Host}, {loop, Fun}, {port, Port}, {name, Name}],
   socket_server:start(Options).
 
-stop(Port) when is_integer(Port) ->
-  socket_server:stop(?MODULE).
-
-loop(Socket, Fun) ->
-  handshake(Socket, Fun).
+stop(Name) ->
+  socket_server:stop(Name).
 
 %%%
 %%% websocket protocol
@@ -117,6 +114,9 @@ loop(Socket, Fun, LoopData) ->
 %%%
 %%% private
 %%%
+
+loop(Socket, Fun) ->
+  handshake(Socket, Fun).
 
 encode(Bin) ->
   Bin1 = base64:encode(Bin),
