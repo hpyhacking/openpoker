@@ -94,14 +94,22 @@ game_to_id(G) when is_pid(G) -> erlang:process_display(self(), backtrace);
 game_to_id(GID) when is_integer(GID) -> GID.
 
 id_to_game(0) -> undefined;
-id_to_game(GID) -> global:whereis_name({game, GID}).
+id_to_game(GID) ->
+  case get(convert_id_to_process) of
+    undefined -> global:whereis_name({game, GID});
+    _ -> GID
+  end.
 
 player_to_id(undefined) -> 0;
 player_to_id(none) -> 0;
 player_to_id(PID) when is_integer(PID) -> PID.
 
 id_to_player(0) -> undefined;
-id_to_player(PID) -> global:whereis_name({player, PID}).
+id_to_player(PID) -> 
+  case get(convert_id_to_process) of
+    undefined -> global:whereis_name({player, PID});
+    _ -> PID
+  end.
 
 %% auto generate command and notify protocol
 %% read binary to protocol record

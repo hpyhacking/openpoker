@@ -1,9 +1,13 @@
 -module(genesis_protocol).
 -export([connect/0, disconnect/1, handle_message/2, handle_data/2]).
+-export([loop/0]).
 
 -include("genesis.hrl").
 
-connect() -> console(genesis_protocol_connect).
+connect() -> 
+  put(convert_id_to_process, true),
+  console(genesis_protocol_connect).
+
 disconnect(_) -> console(genesis_protocol_disconnect).
 handle_message(Msg, _LoopData) -> console([genesis_protocol_msg, Msg]).
 
@@ -27,6 +31,13 @@ console(R) ->
   io:format("===> ~p~n", [R]).
 
 send(R) ->
-  Bin = list_to_binary(protocol:write(R)),
+  D = protocol:write(R),
+  console([send, D]),
+  Bin = list_to_binary(D),
   Encode = base64:encode(Bin),
   webtekcos:send_data(Encode).
+
+loop() ->
+  receive 
+    _ -> ok
+  end.
