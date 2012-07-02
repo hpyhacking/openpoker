@@ -9,7 +9,45 @@ DEF_OUT << "  Protocol.reg @id, {int: integer, str: string, byte: byte, base: ba
 EXPORT_OUT =  "window.protocols =\n"
 EXPORT_OUT << "  test: TestProtocol\n"
 
-TYPES = []
+TYPES = {
+  :limit => "limit",
+
+  :identity => "string",
+  :password => "string",
+  :name => "string",
+  :nick => "string",
+  :photo => "string",
+
+  :player_id => "integer",
+  :game_id => "integer",
+  :state => "integer",
+
+  :sn => "byte",
+  :b => "byte",
+  :sb => "byte",
+  :bb => "byte",
+  :seats => "byte",
+  :require => "byte",
+  :joined => "byte",
+  :stage => "byte",
+  :raise => "coin",
+  :call => "coin",
+  :buyin => "coin",
+  :amount => "coin",
+  :balance => "coin",
+  :inplay => "coin",
+  :pot => "coin",
+  :bet => "coin",
+  :min => "coin",
+  :max => "coin",
+  :card => "card",
+  :rank => "byte",
+  :high1 => "byte",
+  :high2 => "byte",
+  :suit => "byte",
+  :cards => "cards",
+  :error => "byte"
+}
 
 def parse_def file
   File.open(file).each_line do |line| 
@@ -26,8 +64,7 @@ def parse_def file
       f = (f == "player") ? "player_id" : f
 
       internal = true if (internal == false and f == "'|'")
-      TYPES << f if not internal
-      internal ? nil : "#{f}: type"
+      internal ? nil : "#{f}: #{TYPES[f.to_sym]}"
     end.select do |x| not x.nil? end.join(", ")
     record_def << "}\n"
     DEFINE[record.upcase] = record_def
@@ -63,5 +100,3 @@ puts "%% auto generate command and notify protocol\n"
 puts DEF_OUT
 puts "\n"
 puts EXPORT_OUT
-
-puts TYPES.uniq
