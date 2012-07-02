@@ -10,10 +10,7 @@
 -export([raise/2, fold/2]).
 -export([broadcast/2, broadcast/3]).
 
--include("common.hrl").
--include("schema.hrl").
--include("game.hrl").
--include("protocol.hrl").
+-include("genesis.hrl").
 
 %%%
 %%% callback

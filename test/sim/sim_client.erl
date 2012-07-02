@@ -1,5 +1,6 @@
 -module(sim_client).
 -export([start/1, start_robot/1, stop/1, send/2, head/1, box/0, box/1, loopdata/2, player/2, loop/2, loop/3, robot_loop/2, robot_loop/3, setup_players/1]).
+
 -include("genesis.hrl").
 -include("genesis_test.hrl").
 

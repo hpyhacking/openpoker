@@ -1,9 +1,7 @@
 -module(wait_players).
 -export([start/2, wait_for_players/2]).
 
--include("common.hrl").
--include("protocol.hrl").
--include("game.hrl").
+-include("genesis.hrl").
 
 start(_Params, Ctx = #texas{start_delay = StartDelay}) ->
   Timer = erlang:start_timer(StartDelay, self(), ?MODULE),

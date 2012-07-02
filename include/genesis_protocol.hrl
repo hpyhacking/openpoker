@@ -48,4 +48,4 @@
 -define(CMD_OUT,              38).
 -record(cmd_out,              { game, sn, buyin, '|', pid, proc }).
 
--include("notify.hrl").
+-include("genesis_notify.hrl").

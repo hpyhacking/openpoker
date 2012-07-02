@@ -1,9 +1,7 @@
 -module(showdown).
 -export([start/2]).
 
--include("common.hrl").
--include("game.hrl").
--include("protocol.hrl").
+-include("genesis.hrl").
 
 %%%
 %%% callback

@@ -2,7 +2,7 @@
 -export([start_link/3, start_link/4, stop/1, loop/2]).
 -export([generate_websocket_accept/1]).
 
--include("common.hrl").
+-include("genesis_common.hrl").
 
 -define(WEBSOCKET_PREFIX,
   "HTTP/1.1 101 Switching Protocols\r\n" ++ 

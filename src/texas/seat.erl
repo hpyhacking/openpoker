@@ -1,8 +1,7 @@
 -module(seat).
 -export([new/1, set/2, set/3, get/1, get/2, lookup/2, lookup/3, info/2]).
 
--include("common.hrl").
--include("game.hrl").
+-include("genesis.hrl").
 
 new(N) when N > 0 ->
   list_to_tuple(new(N, [])).

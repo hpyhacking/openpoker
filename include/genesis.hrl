@@ -1,7 +1,6 @@
--include("common.hrl").
--include("game.hrl").
--include("schema.hrl").
--include("protocol.hrl").
+-include("genesis_common.hrl").
+-include("genesis_game.hrl").
+-include("genesis_protocol.hrl").
+-include("genesis_schema.hrl").
 
--define(SLEEP, timer:sleep(200)).
 

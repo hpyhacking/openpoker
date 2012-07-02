@@ -1,5 +1,4 @@
 -define(GAME_UNDEF, undefined).
-
 -define(PLAYER_TIMEOUT, 15000).
 -define(PLAYER_OUT_TIMEOUT, 15000).
 -define(START_DELAY, 6000).

@@ -1,4 +1,5 @@
 -module(sim_betting_test).
+
 -include("genesis.hrl").
 -include("genesis_test.hrl").
 

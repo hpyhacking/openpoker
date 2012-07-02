@@ -1,9 +1,7 @@
 -module(betting).
 -export([start/2, betting/2]).
 
--include("common.hrl").
--include("game.hrl").
--include("protocol.hrl").
+-include("genesis.hrl").
 
 -define(ZERO, 0).
 

@@ -2,9 +2,7 @@
 -export([start/2]).
 -export([rank/1, notify/1]).
 
--include("common.hrl").
--include("game.hrl").
--include("protocol.hrl").
+-include("genesis.hrl").
 
 %%%
 %%% callback

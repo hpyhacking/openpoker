@@ -2,7 +2,7 @@
 
 -export([bump/1, bump/2, reset/1, reset/2]).
 
--include("schema.hrl").
+-include("genesis_schema.hrl").
 
 bump(Type) ->
     bump(Type, 1).

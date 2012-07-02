@@ -1,11 +1,7 @@
 -module(blinds).
 -export([start/2]).
 
--include("common.hrl").
--include("schema.hrl").
--include("game.hrl").
--include("protocol.hrl").
-
+-include("genesis.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 %%%

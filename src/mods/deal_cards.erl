@@ -1,9 +1,7 @@
 -module(deal_cards).
 -export([start/2]).
 
--include("common.hrl").
--include("game.hrl").
--include("protocol.hrl").
+-include("genesis.hrl").
 
 start([0, private], Ctx) -> {stop, Ctx};
 start([N, private], Ctx = #texas{b = B, seats = S}) ->

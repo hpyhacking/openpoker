@@ -1,8 +1,4 @@
-
 -module(genesis_sup).
-
--include("common.hrl").
-
 -behaviour(supervisor).
 
 %% API
@@ -28,12 +24,10 @@ start_link() ->
 init([]) ->
   Child = case init:get_argument(protocoltest) of
     {ok, _} ->
-      ?LOG([{protocol_test, start}]),
       [{protocol_srv, 
           {websocket_server, start_link, [protocol_srv, "127.0.0.1", 8000, nil]},
           transient, 20000, worker, [websocket_server]}];
     error ->
-      ?LOG([{normal, start}]),
       []
   end,
   {ok, { {one_for_one, 5, 10}, Child} }.

@@ -7,10 +7,7 @@
     pickle/2, unpickle/2, wrap/2, tuple/1, record/2, 
     byte/0, short/0, int/0, list/2, binary/1, string/0]).
 
--include("common.hrl").
--include("game.hrl").
--include("protocol.hrl").
--include("schema.hrl").
+-include("genesis.hrl").
 
 -define(int, int()).
 -define(byte, byte()).

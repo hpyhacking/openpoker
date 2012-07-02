@@ -1,9 +1,7 @@
 -module(client).
 -export([loop/2, send/1, send/2]).
 
--include("common.hrl").
--include("game.hrl").
--include("protocol.hrl").
+-include("genesis.hrl").
 
 -record(pdata, { 
     timer = ?UNDEF, 

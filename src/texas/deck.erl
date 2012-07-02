@@ -1,7 +1,7 @@
 -module(deck).
 -export([new/0, new/1, draw/1, size/1]).
 
--include("game.hrl").
+-include("genesis_game.hrl").
 
 new() -> 
   shuffle(make_deck()).

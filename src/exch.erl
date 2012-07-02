@@ -6,9 +6,7 @@
          handle_info/2, terminate/2, code_change/3]).
 -export([start/3, stop/1, stop/2, cast/2, call/2]).
 
--include("common.hrl").
--include("schema.hrl").
--include("game.hrl").
+-include("genesis.hrl").
 
 -record(pdata, {
     id,

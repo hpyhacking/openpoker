@@ -1,8 +1,8 @@
 -module(schema).
 -export([rebuild_schema/0, rebuild_core/0]).
 
--include("schema.hrl").
--include("common.hrl").
+-include("genesis_common.hrl").
+-include("genesis_schema.hrl").
 
 -define(RAM, {ram_copies, Nodes}).
 -define(DISC, {disc_copies, Nodes}).

@@ -10,9 +10,7 @@
 
 -export([ctx/1, ctx/2]).
 
--include("common.hrl").
--include("protocol.hrl").
--include("schema.hrl").
+-include("genesis.hrl").
 
 -record(pdata, {
     pid,
