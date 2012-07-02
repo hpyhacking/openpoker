@@ -39,11 +39,11 @@ def parse_wr file
   end
 end
 
-parse_def "include/protocol.hrl"
-parse_def "include/notify.hrl"
+parse_def "include/genesis_protocol.hrl"
+parse_def "include/genesis_notify.hrl"
 
-parse_wr "include/protocol.hrl"
-parse_wr "include/notify.hrl"
+parse_wr "include/genesis_protocol.hrl"
+parse_wr "include/genesis_notify.hrl"
 
 READ_OUT << "read(_ErrorBin) -> ok.\n"
 WRITE_OUT << "write(_ErrorRecord) -> ok.\n"
