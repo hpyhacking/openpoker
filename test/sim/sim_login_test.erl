@@ -3,7 +3,7 @@
 -include("genesis_test.hrl").
 
 connection_timeout_test() ->
-  sim_client:start(?MODULE),
+  sim_client:start(?MODULE, 2000),
   ?assert(is_pid(whereis(?MODULE))),
   timer:sleep(3000),
   ?assertNot(is_pid(whereis(?MODULE))),

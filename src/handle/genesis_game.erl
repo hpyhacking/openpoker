@@ -1,12 +1,11 @@
 -module(genesis_game).
--export([connect/0, connect/1, disconnect/1, handle_message/2, hanlde_data/2]).
+-export([connect/0, connect/1, disconnect/1, handle_message/2, handle_data/2]).
 -export([send/1, send/2]).
 
 -include("genesis.hrl").
 
 -record(pdata, { 
-    timer = ?UNDEF, 
-    server = global:whereis_name(server),
+    connection_timer = ?UNDEF, 
     player = ?UNDEF 
   }).
 
@@ -14,7 +13,8 @@ connect() ->
   connect(?CONNECT_TIMEOUT).
 
 connect(ConnectTimeout) ->
-  #pdata{timer = erlang:start_timer(ConnectTimeout, self(), ?MODULE)}.
+  Timer = erlang:start_timer(ConnectTimeout, self(), ?MODULE),
+  #pdata{connection_timer = Timer}.
 
 disconnect(_) ->
   ok.
@@ -23,19 +23,20 @@ handle_message({timeout, _, ?MODULE}, _LoopData) ->
   send(#notify_error{error = ?ERR_CONNECTION_TIMEOUT}),
   webtekcos:close().
 
-hanlde_data(Data, LoopData) when is_binary(Data) ->
+handle_data(Data, LoopData) when is_binary(Data) ->
   case catch protocol:read(Data) of
     {'EXIT', {Reason, Stack}} ->
       ?LOG([{handle_data, Data}, {error, {Reason, Stack}}]),
       send(#notify_error{error = ?ERR_DATA}),
+      ?LOG([{undef, error}]),
       webtekcos:close();
     R ->
       handle_protocol(R, LoopData)
   end.
 
-handle_protocol(R = #cmd_login{}, LoopData = #pdata{timer =T}) when T /= ?UNDEF ->
-  catch erlang:cancel_timer(T),
-  handle_protocol(R, LoopData#pdata{timer = ?UNDEF});
+handle_protocol(R = #cmd_login{}, LoopData = #pdata{connection_timer =T}) when T /= ?UNDEF ->
+  catch erlang:cancel_connection_timer(T),
+  handle_protocol(R, LoopData#pdata{connection_timer = ?UNDEF});
 
 handle_protocol(#cmd_login{identity = Identity, password = Password}, LoopData) ->
   case player:auth(binary_to_list(Identity), binary_to_list(Password)) of
