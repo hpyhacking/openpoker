@@ -4,12 +4,14 @@ DEFINE = Hash.new
 DEF_OUT =  "class TestProtocol extends Protocol\n"
 DEF_OUT << "  @id = 255\n"
 DEF_OUT << "  constructor: (data = {}) -> data.id = TestProtocol.id; super(data)\n"
-DEF_OUT << "  Protocol.reg @id, {int: integer, str: string, byte: byte, base: base64, coin: coin}"
+DEF_OUT << "  Protocol.reg @id, {int: integer, str: string, byte: byte, base: base64, coin: coin}\n\n"
 
 EXPORT_OUT =  "window.protocols =\n"
 EXPORT_OUT << "  test: TestProtocol\n"
 
 TYPES = {
+  :card => "card",
+  :cards => "cards",
   :limit => "limit",
 
   :identity => "string",
@@ -18,36 +20,42 @@ TYPES = {
   :nick => "string",
   :photo => "string",
 
-  :player_id => "integer",
-  :game_id => "integer",
   :state => "integer",
+  :game_id => "integer",
+  :player_id => "integer",
 
-  :sn => "byte",
-  :b => "byte",
-  :sb => "byte",
-  :bb => "byte",
-  :seats => "byte",
-  :require => "byte",
-  :joined => "byte",
-  :stage => "byte",
-  :raise => "coin",
-  :call => "coin",
-  :buyin => "coin",
-  :amount => "coin",
-  :balance => "coin",
-  :inplay => "coin",
-  :pot => "coin",
-  :bet => "coin",
   :min => "coin",
   :max => "coin",
-  :card => "card",
+  :pot => "coin",
+  :bet => "coin",
+  :call => "coin",
+  :raise => "coin",
+  :buyin => "coin",
+  :inplay => "coin",
+  :balance => "coin",
+  :amount => "coin",
+
+  :b => "byte",
+  :bb => "byte",
+  :sb => "byte",
+  :sn => "byte",
+  :stage => "byte",
+  :seats => "byte",
+  :joined => "byte",
+  :require => "byte",
+
   :rank => "byte",
+  :suit => "byte",
   :high1 => "byte",
   :high2 => "byte",
-  :suit => "byte",
-  :cards => "cards",
   :error => "byte"
 }
+
+def to_n str
+  str.downcase.split('_').map do |x|
+    x.gsub(/\b\w/) { $&.upcase }
+  end.join()
+end
 
 def parse_def file
   File.open(file).each_line do |line| 
@@ -78,12 +86,12 @@ def parse_wr file
     record = $1
     record_id = $2
 
-    DEF_OUT << "class #{record} extends Protocol\n"
+    DEF_OUT << "class #{to_n record} extends Protocol\n"
     DEF_OUT << "  @id = #{record_id}\n"
-    DEF_OUT << "  constructor: (data = {}) -> data.id = #{record}.id; super(data)\n"
+    DEF_OUT << "  constructor: (data = {}) -> data.id = #{to_n record}.id; super(data)\n"
     DEF_OUT << "  #{DEFINE[record.upcase]}\n\n"
 
-    EXPORT_OUT << "  #{record.downcase}: #{record}\n"
+    EXPORT_OUT << "  #{record.downcase}: #{to_n(record)}\n"
   end
 end
 
@@ -96,7 +104,7 @@ parse_wr "include/genesis_notify.hrl"
 #READ_OUT << ""
 #WRITE_OUT << ""
 
-puts "%% auto generate command and notify protocol\n"
+puts "## auto generate command and notify protocol\n"
 puts DEF_OUT
 puts "\n"
 puts EXPORT_OUT

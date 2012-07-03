@@ -50,8 +50,9 @@ error() -> ?byte.
 
 high1() -> face().
 high2() -> face().
-
-card() -> short().
+%% 扑克牌使用short类型，占16位，通过位运算得到
+%% 高8位代表扑克数值大小，低8位代表扑克的花色类型
+card() -> short(). 
 cards() -> list(byte(), card()).
 
 limit() -> record(limit, {int(), int(), int(), int()}).
