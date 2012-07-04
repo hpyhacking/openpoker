@@ -5,10 +5,12 @@
 -include("genesis.hrl").
 
 connect() -> 
-  put(convert_id_to_process, true),
-  console(genesis_protocol_connect).
+  console(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"),
+  put(convert_id_to_process, true).
 
-disconnect(_) -> console(genesis_protocol_disconnect).
+disconnect(_) ->
+  console("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<").
+
 handle_message(Msg, _LoopData) -> console([genesis_protocol_msg, Msg]).
 
 handle_data(Data, _LoopData) when is_list(Data) ->
@@ -23,7 +25,6 @@ handle_data(Data, _LoopData) when is_list(Data) ->
       send(#notify_error{error = ?ERR_DATA}),
       webtekcos:close();
     R ->
-      console([handle_data_read, R]),
       send(R)
   end.
 
@@ -32,7 +33,6 @@ console(R) ->
 
 send(R) ->
   D = protocol:write(R),
-  console([send, D]),
   Bin = list_to_binary(D),
   Encode = base64:encode(Bin),
   webtekcos:send_data(Encode).
