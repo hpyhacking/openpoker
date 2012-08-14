@@ -22,12 +22,6 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-  Child = case init:get_argument(protocoltest) of
-    {ok, _} ->
-      [{protocol_srv, 
-          {websocket_server, start_link, [protocol_srv, "127.0.0.1", 8000, nil]},
-          transient, 20000, worker, [websocket_server]}];
-    error ->
-      []
-  end,
-  {ok, { {one_for_one, 5, 10}, Child} }.
+  Webtekcos = {webtekcos, 
+    {webtekcos, start_link, []}, permanent, 2000, worker, [webtekcos]},
+  {ok, {{one_for_one, 5, 10}, [Webtekcos]}}.

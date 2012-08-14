@@ -16,8 +16,7 @@ connect(ConnectTimeout) ->
   Timer = erlang:start_timer(ConnectTimeout, self(), ?MODULE),
   #pdata{connection_timer = Timer}.
 
-disconnect(_) ->
-  ok.
+disconnect(_) -> ok.
 
 handle_message({timeout, _, ?MODULE}, _LoopData) ->
   send(#notify_error{error = ?ERR_CONNECTION_TIMEOUT}),

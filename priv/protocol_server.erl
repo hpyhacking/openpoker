@@ -14,6 +14,7 @@ main(_) ->
       end
   end,
 
+  % mock player id, beascuse protocol check player id to pair pid.
   MockPlayerPID = spawn(Loop),
   yes = global:register_name({player, 1}, MockPlayerPID),
 
