@@ -1,11 +1,12 @@
 {application, genesis,
  [
   {description, ""},
-  {vsn, "1"},
+  {vsn, "0.1.0"},
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  sasl
                  ]},
   {mod, { genesis_app, []}},
   {env, []}

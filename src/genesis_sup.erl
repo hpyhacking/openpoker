@@ -22,6 +22,4 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-  Webtekcos = {webtekcos, 
-    {webtekcos, start_link, []}, permanent, 2000, worker, [webtekcos]},
-  {ok, {{one_for_one, 5, 10}, [Webtekcos]}}.
+  {ok, {{one_for_one, 5, 10}, []}}.
