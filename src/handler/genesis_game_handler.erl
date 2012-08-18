@@ -1,4 +1,4 @@
--module(genesis_game).
+-module(genesis_game_handler).
 -export([connect/0, connect/1, disconnect/1, handle_message/2, handle_data/2]).
 -export([send/1, send/2]).
 

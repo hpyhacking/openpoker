@@ -1,4 +1,4 @@
--module(genesis_protocol).
+-module(genesis_protocol_handler).
 -export([connect/0, disconnect/1, handle_message/2, handle_data/2]).
 -export([loop/0]).
 

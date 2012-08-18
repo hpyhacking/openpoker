@@ -1,4 +1,4 @@
--module(genesis_sup).
+-module(genesis_games_sup).
 -behaviour(supervisor).
 
 %% API
@@ -22,6 +22,5 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-  GamesSup = {genesis_games_sup, {genesis_games_sup, start_link, []}, permanent, 10000, supervisor, [genesis_games_sup]},
-  PlayersSup = {genesis_players_sup, {genesis_players_sup, start_link, []}, permanent, 2000, supervisor, [genesis_players_sup]},
-  {ok, {{one_for_one, 5, 10}, [GamesSup, PlayersSup]}}.
+  %% read mnesia game config to generate process define
+  {ok, {{one_for_one, 5, 10}, []}}.
