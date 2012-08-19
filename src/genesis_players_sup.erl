@@ -2,7 +2,7 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0]).
+-export([start_link/0, start_child/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -15,7 +15,10 @@
 %% ===================================================================
 
 start_link() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+  supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+
+start_child(R) ->
+  supervisor:start_child(?MODULE, {make_ref(), {player, start_link, [R]}, permanent, 2000, worker, []}).
 
 %% ===================================================================
 %% Supervisor callbacks

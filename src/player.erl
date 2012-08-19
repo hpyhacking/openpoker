@@ -4,7 +4,7 @@
 -export([init/1, handle_call/3, handle_cast/2, 
          handle_info/2, terminate/2, code_change/3]).
 
--export([start/1, stop/1, notify/2, cast/2, auth/2, logout/1]).
+-export([start/1, start_link/1, stop/1, notify/2, cast/2, auth/2, logout/1]).
 
 -export([client/1, info/1, balance/1]).
 
@@ -163,6 +163,9 @@ ctx(PId) ->
 
 ctx(PId, Type) ->
   gen_server:call(?LOOKUP_PLAYER(PId), Type).
+
+start_link(R = #tab_player_info{pid = PId}) ->
+  gen_server:start_link(?PLAYER(PId), ?MODULE, [R], []).
 
 start(R = #tab_player_info{pid = PId}) ->
   gen_server:start(?PLAYER(PId), ?MODULE, [R], []).
