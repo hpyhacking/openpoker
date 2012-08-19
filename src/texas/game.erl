@@ -197,7 +197,7 @@ start_conf(Conf, N) ->
 
 start_conf(_Conf, 0, L) -> L;
 start_conf(Conf = #tab_game_config{module = Module, mods = Mods}, N, L) when is_list(Mods) ->
-  {ok, Pid} = exch:start(Module, Conf, Mods),
+  {ok, Pid} = exch:start_link(Module, Conf, Mods),
   start_conf(Conf, N - 1, L ++ [{ok, Pid}]);
 start_conf(Conf = #tab_game_config{}, N, L) ->
   start_conf(Conf#tab_game_config{mods = default_mods()}, N, L).
@@ -336,31 +336,7 @@ create_runtime(GID, R) ->
 clear_runtime(GID) ->
   ok = mnesia:dirty_delete(tab_game_xref, GID).
 
-default_mods() ->
-  [
-    {wait_players, []},
-    %% blind rules
-    {blinds, []},
-    %% deal 2 cards to each player
-    {deal_cards, [2, private]}, 
-    {ranking, []}, 
-    %% start after BB, 3 raises
-    {betting, [?GS_PREFLOP]}, 
-    {deal_cards, [3, shared]}, 
-    {ranking, []}, 
-    %% flop
-    {betting, [?GS_FLOP]}, 
-    {deal_cards, [1, shared]}, 
-    {ranking, []}, 
-    %% turn
-    {betting, [?GS_TURN]}, 
-    {deal_cards, [1, shared]}, 
-    {ranking, []}, 
-    %% river
-    {betting, [?GS_RIVER]}, 
-    {showdown, []},
-    {restart, []}
-  ].
+default_mods() -> ?DEF_MOD.
 
 do_join(R = #cmd_join{identity = Identity, proc = Process}, Seat = #seat{}, Ctx = #texas{observers = Obs, seats = Seats}) ->
   case proplists:lookup(Identity, Obs) of

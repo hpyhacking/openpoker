@@ -4,7 +4,7 @@
 -export([behaviour_info/1]).
 -export([init/1, handle_call/3, handle_cast/2, 
          handle_info/2, terminate/2, code_change/3]).
--export([start/3, stop/1, stop/2, cast/2, call/2]).
+-export([start_link/3, stop/1, stop/2, cast/2, call/2]).
 
 -include("genesis.hrl").
 
@@ -30,9 +30,9 @@ behaviour_info(callbacks) -> [
 %%% client
 %%%
 
-start(Module, Conf, Mods) ->
+start_link(Module, Conf, Mods) ->
   Id = Module:id(),
-  {ok, _PID} = gen_server:start({global, {Module, Id}}, exch, [Module, Id, Conf, Mods], []).
+  gen_server:start_link({global, {Module, Id}}, exch, [Module, Id, Conf, Mods], []).
 
 stop(Pid) when is_pid(Pid) ->
   gen_server:cast(Pid, stop).

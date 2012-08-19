@@ -1,6 +1,7 @@
 -module(schema).
--export([rebuild_schema/0, rebuild_core/0]).
+-export([rebuild_schema/0, rebuild_core/0, rebuild_core_and_data/0]).
 
+-include("genesis_game.hrl").
 -include("genesis_common.hrl").
 -include("genesis_schema.hrl").
 
@@ -9,21 +10,25 @@
 -define(TABLE_DEF(Name, Type, Copies, Fields), {Name, [Copies, {type, Type}, {attributes, Fields}]}).
 
 rebuild_schema() ->
-  pong = net_adm:ping('genesis_console@air'),
   stopped = mnesia:stop(),
   ok = mnesia:delete_schema(all_nodes()),
   timer:sleep(500),
   ok = mnesia:create_schema(all_nodes()),
-  timer:sleep(500).
+  timer:sleep(500),
+  ok = mnesia:start().
 
 rebuild_core() ->
   rebuild_core(all_nodes()).
+
+rebuild_core_and_data() ->
+  rebuild_core(),
+  setup_games().
 
 %% Private
 
 rebuild_core(Nodes) ->
   rebuild_core_table(Nodes),
-  reload_core_default_data().
+  setup_counters().
 
 rebuild_core_table(Nodes) ->
   RamTables = [
@@ -47,10 +52,6 @@ rebuild_core_table(Nodes) ->
   create_indices(tab_buyin_log, [pid, date]),
   create_indices(tab_turnover_log, [pid, date]).
 
-reload_core_default_data() ->
-  setup_counters(),
-  setup_games().
-
 all_nodes() ->
   nodes() ++ [node()].
 
@@ -73,4 +74,5 @@ setup_counters()->
   ok.
 
 setup_games() ->
+  mnesia:dirty_write(#tab_game_config{id = 1, module = game, mods = ?DEF_MOD, limit = no_limit, seat_count = 9, start_delay = 3000, required = 2, timeout = 1000, max = 4}),
   ok.

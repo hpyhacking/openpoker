@@ -81,6 +81,31 @@
 -define(HC_FOUR_KIND, 7).
 -define(HC_STRAIGHT_FLUSH, 8).
 
+-define(DEF_MOD, [
+    {wait_players, []},
+    %% blind rules
+    {blinds, []},
+    %% deal 2 cards to each player
+    {deal_cards, [2, private]}, 
+    {ranking, []}, 
+    %% start after BB, 3 raises
+    {betting, [?GS_PREFLOP]}, 
+    {deal_cards, [3, shared]}, 
+    {ranking, []}, 
+    %% flop
+    {betting, [?GS_FLOP]}, 
+    {deal_cards, [1, shared]}, 
+    {ranking, []}, 
+    %% turn
+    {betting, [?GS_TURN]}, 
+    {deal_cards, [1, shared]}, 
+    {ranking, []}, 
+    %% river
+    {betting, [?GS_RIVER]}, 
+    {showdown, []},
+    {restart, []}
+  ]).
+
 -record(hand, {
     pid = ?GAME_UNDEF,
     seat_sn = ?GAME_UNDEF,

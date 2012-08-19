@@ -23,4 +23,7 @@ start_link() ->
 
 init([]) ->
   %% read mnesia game config to generate process define
-  {ok, {{one_for_one, 5, 10}, []}}.
+  Fun = fun({Module, Conf, Mods}) ->
+      {make_ref(), {exch, start_link, [Module, Conf, Mods]}, permanent, 2000, worker, []}
+  end,
+  {ok, {{one_for_one, 5, 10}, lists:map(Fun, game:config())}}.
