@@ -1,12 +1,16 @@
 -module(genesis_game_handler).
+-behaviour(webtekcos).
+
 -export([connect/0, connect/1, disconnect/1, handle_message/2, handle_data/2]).
+
 -export([send/1, send/2]).
 
 -include("genesis.hrl").
 
 -record(pdata, { 
     connection_timer = ?UNDEF, 
-    player = ?UNDEF 
+    player = ?UNDEF,
+    player_info = ?UNDEF
   }).
 
 connect() ->
@@ -16,22 +20,28 @@ connect(ConnectTimeout) ->
   Timer = erlang:start_timer(ConnectTimeout, self(), ?MODULE),
   #pdata{connection_timer = Timer}.
 
-disconnect(_) -> ok.
+disconnect(_) ->
+  ok.
 
+handle_message({timeout, _, ?MODULE}, LoopData = #pdata{connection_timer =T}) when T =:= ?UNDEF ->
+  LoopData;
+  
 handle_message({timeout, _, ?MODULE}, _LoopData) ->
   send(#notify_error{error = ?ERR_CONNECTION_TIMEOUT}),
   webtekcos:close().
 
 handle_data(Data, LoopData) when is_binary(Data) ->
   case catch protocol:read(Data) of
-    {'EXIT', {Reason, Stack}} ->
-      ?LOG([{handle_data, Data}, {error, {Reason, Stack}}]),
+    {'EXIT', {_Reason, _Stack}} ->
       send(#notify_error{error = ?ERR_DATA}),
-      ?LOG([{undef, error}]),
       webtekcos:close();
     R ->
       handle_protocol(R, LoopData)
   end.
+
+%%%%
+%%%% handle internal protocol
+%%%% 
 
 handle_protocol(R = #cmd_login{}, LoopData = #pdata{connection_timer =T}) when T /= ?UNDEF ->
   catch erlang:cancel_connection_timer(T),
@@ -48,21 +58,17 @@ handle_protocol(#cmd_login{identity = Identity, password = Password}, LoopData) 
     {ok, pass, Info} ->
       % create player process by client process, 
       % receive {'EXIT'} when player process error
-      case player:start(Info) of
+      case genesis_players_sup:start_child(Info) of
         {ok, Player} when is_pid(Player) ->
           player:client(Player),
           player:info(Player),
           player:balance(Player),
-          LoopData#pdata{player = Player}
+          LoopData#pdata{player = Player, player_info = Info}
       end
   end;
 
-handle_protocol(#cmd_logout{}, #pdata{player = Player}) when is_pid(Player) ->
-  {ok, logout} = player:logout(Player),
-  webtekcos:close();
-
-handle_protocol(#cmd_logout{}, _LoopData) ->
-  send(#notify_error{error = ?ERR_PROTOCOL}),
+handle_protocol(#cmd_logout{}, #pdata{player = Player, player_info = Info}) when is_pid(Player) ->
+  genesis_players_sup:terminate_child(Info#tab_player_info.pid),
   webtekcos:close();
 
 handle_protocol(#cmd_query_game{}, LoopData = #pdata{player = Player}) when is_pid(Player) -> 
