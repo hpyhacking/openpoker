@@ -75,11 +75,11 @@ loop({msg, {timeout, _, ?MODULE}}, _Data) ->
 %%% client
 %%%
 
-send(Msg) ->
-  send(self(), Msg).
+send(R) ->
+  genesis_game_handler:send(R).
 
 send(PID, R) when is_pid(PID), is_tuple(R) ->
-  PID ! {send, list_to_binary(protocol:write(R))}.
+  genesis_game_handler:send(PID, R).
 
 %%%
 %%% private

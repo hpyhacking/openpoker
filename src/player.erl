@@ -236,5 +236,7 @@ reload_player_info(PId) ->
 create_runtime(PID, Process) when is_number(PID), is_pid(Process) ->
   mnesia:dirty_write(#tab_player{ pid = PID, process = Process }).
 
-forward_to_client(_, #pdata{client = Client}) when Client =:= ?UNDEF -> exit(undefined_client);
-forward_to_client(R, #pdata{client = Client}) -> client:send(Client, R).
+forward_to_client(_, #pdata{client = Client}) when Client =:= ?UNDEF -> 
+  exit(undefined_client);
+forward_to_client(R, #pdata{client = Client}) -> 
+  genesis_game_handler:send(Client, R).
