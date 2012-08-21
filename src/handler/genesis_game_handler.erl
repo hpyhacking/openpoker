@@ -20,6 +20,9 @@ connect(ConnectTimeout) ->
   Timer = erlang:start_timer(ConnectTimeout, self(), ?MODULE),
   #pdata{connection_timer = Timer}.
 
+disconnect(#pdata{player_info = Info, player = Player}) when is_pid(Player) ->
+  genesis_players_sup:terminate_child(Info#tab_player_info.pid);
+
 disconnect(_) ->
   ok.
 
