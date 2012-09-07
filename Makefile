@@ -1,3 +1,3 @@
 start_dev:
-	rebar compile
-	erl -sname genesis -pa ebin -pa deps/*/ebin -s genesis_app
+	rm -rf rel/genesis/Mnesia.genesis@127.0.0.1
+	./rel/genesis/bin/genesis console

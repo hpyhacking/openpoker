@@ -1,13 +1,8 @@
 #!/usr/bin/ruby
 #
 DEFINE = Hash.new
-DEF_OUT =  "class TestProtocol extends Protocol\n"
-DEF_OUT << "  @id = 255\n"
-DEF_OUT << "  constructor: (data = {}) -> data.id = TestProtocol.id; super(data)\n"
-DEF_OUT << "  Protocol.reg @id, {int: integer, str: string, byte: byte, base: base64, coin: coin}\n\n"
-
-EXPORT_OUT =  "window.protocols =\n"
-EXPORT_OUT << "  test: TestProtocol\n"
+DEF_OUT =  ""
+EXPORT_OUT =  ""
 
 TYPES = {
   :card => "card",
@@ -65,7 +60,6 @@ def parse_def file
     internal = false
 
     record_def = ""
-    record_def << "Protocol.reg @id, {"
     record_def << $2.split(',').map do |x| 
       f = x.strip
       f = (f == "game") ? "game_id" : f
@@ -74,8 +68,7 @@ def parse_def file
       internal = true if (internal == false and f == "'|'")
       internal ? nil : "#{f}: #{TYPES[f.to_sym]}"
     end.select do |x| not x.nil? end.join(", ")
-    record_def << "}\n"
-    DEFINE[record.upcase] = record_def
+    DEFINE[record.upcase] = record_def == "" ? nil : record_def << "\n"
   end
 end
 
@@ -86,12 +79,13 @@ def parse_wr file
     record = $1
     record_id = $2
 
-    DEF_OUT << "class #{to_n record} extends Protocol\n"
-    DEF_OUT << "  @id = #{record_id}\n"
-    DEF_OUT << "  constructor: (data = {}) -> data.id = #{to_n record}.id; super(data)\n"
-    DEF_OUT << "  #{DEFINE[record.upcase]}\n\n"
-
-    EXPORT_OUT << "  #{record.downcase}: #{to_n(record)}\n"
+    DEF_OUT << "class App.#{to_n record} extends App.Protocol\n"
+    if DEFINE[record.upcase]
+      DEF_OUT << "  @reg '#{to_n record}', #{record_id}, #{DEFINE[record.upcase]}\n"
+    else
+      DEF_OUT << "  @reg '#{to_n record}', #{record_id}\n\n"
+    end
+    EXPORT_OUT << "App.Protocol.join App.#{to_n record}\n"
   end
 end
 
@@ -101,10 +95,6 @@ parse_def "include/genesis_notify.hrl"
 parse_wr "include/genesis_protocol.hrl"
 parse_wr "include/genesis_notify.hrl"
 
-#READ_OUT << ""
-#WRITE_OUT << ""
-
-puts "## auto generate command and notify protocol\n"
+puts "# AUTO_GENERATE, DONT EDIT!!!\n"
 puts DEF_OUT
-puts "\n"
 puts EXPORT_OUT
