@@ -76,7 +76,7 @@ handle_protocol(#cmd_logout{}, #pdata{player = Player, player_info = Info}) when
   webtekcos:close();
 
 handle_protocol(#cmd_query_game{}, LoopData = #pdata{player = Player}) when is_pid(Player) -> 
-  lists:map(fun(Info) -> webtekcos:send(Info) end, game:list()), LoopData;
+  lists:map(fun(Info) -> send(Info) end, game:list()), LoopData;
 
 handle_protocol(R, LoopData = #pdata{player = Player}) when is_pid(Player) ->
   player:cast(Player, R), LoopData;
