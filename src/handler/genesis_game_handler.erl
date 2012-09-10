@@ -85,10 +85,12 @@ handle_protocol(_R, _LoopData) ->
   send(#notify_error{error = ?ERR_PROTOCOL}),
   webtekcos:close().
 
-send(R) ->
-  Data = base64:encode(list_to_binary(protocol:write(R))),
-  webtekcos:send_data(Data).
+send(R) -> send(self(), R).
 
 send(PID, R) ->
-  Data = base64:encode(list_to_binary(protocol:write(R))),
-  webtekcos:send_data(PID, Data).
+  case catch protocol:write(R) of
+    {'EXIT', Raise} ->
+      error_logger:error_report(Raise);
+    Data ->
+      webtekcos:send_data(PID, base64:encode(list_to_binary(Data)))
+  end.
