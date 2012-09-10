@@ -48,7 +48,7 @@ parse_wr "include/genesis_notify.hrl"
 READ_OUT << "read(_ErrorBin) -> ok.\n"
 WRITE_OUT << "write(_ErrorRecord) -> ok.\n"
 
-puts "%% auto generate command and notify protocol\n"
+puts "%% AUTO GENERATE - Don't edit manual\n"
 puts READ_OUT
 puts "\n"
 puts WRITE_OUT

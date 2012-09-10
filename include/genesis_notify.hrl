@@ -78,6 +78,9 @@
 -define(NOTIFY_OUT,           126).
 -record(notify_out,           { game, player }).
 
+-define(NOTIFY_GAMES_LIST_END,127).
+-record(notify_games_list_end,{ size }).
+
 -define(NOTIFY_ERROR,         255).
 -record(notify_error,         { error }).
 

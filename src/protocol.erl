@@ -22,6 +22,7 @@ password() -> ?string.
 state() -> ?int.
 game_id() -> ?int.
 player_id() -> ?int.
+size() -> ?int.
 
 min() -> ?int.
 max() -> ?int.
@@ -50,6 +51,7 @@ error() -> ?byte.
 
 high1() -> face().
 high2() -> face().
+
 %% 扑克牌使用short类型，占16位，通过位运算得到
 %% 高8位代表扑克数值大小，低8位代表扑克的花色类型
 card() -> short(). 
@@ -112,7 +114,7 @@ id_to_player(PID) ->
     _ -> PID
   end.
 
-%% auto generate command and notify protocol
+%% AUTO GENERATE - Don't edit manual
 %% read binary to protocol record
 read(<<?CMD_LOGIN, Bin/binary>>) ->
   unpickle(record(cmd_login, {identity(), password()}), Bin);
@@ -230,6 +232,9 @@ read(<<?NOTIFY_FOLD, Bin/binary>>) ->
 
 read(<<?NOTIFY_OUT, Bin/binary>>) ->
   unpickle(record(notify_out, {game_id(), player_id()}), Bin);
+
+read(<<?NOTIFY_GAMES_LIST_END, Bin/binary>>) ->
+  unpickle(record(notify_games_list_end, {size()}), Bin);
 
 read(<<?NOTIFY_ERROR, Bin/binary>>) ->
   unpickle(record(notify_error, {error()}), Bin);
@@ -353,6 +358,9 @@ write(R) when is_record(R, notify_fold) ->
 
 write(R) when is_record(R, notify_out) ->
   [?NOTIFY_OUT | pickle(record(notify_out, {game_id(), player_id()}), R)];
+
+write(R) when is_record(R, notify_games_list_end) ->
+  [?NOTIFY_GAMES_LIST_END | pickle(record(notify_games_list_end, {size()}), R)];
 
 write(R) when is_record(R, notify_error) ->
   [?NOTIFY_ERROR | pickle(record(notify_error, {error()}), R)];

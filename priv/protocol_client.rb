@@ -18,6 +18,7 @@ TYPES = {
   :state => "integer",
   :game_id => "integer",
   :player_id => "integer",
+  :size => "integer",
 
   :min => "coin",
   :max => "coin",
