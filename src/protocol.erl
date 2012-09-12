@@ -236,6 +236,9 @@ read(<<?NOTIFY_OUT, Bin/binary>>) ->
 read(<<?NOTIFY_GAMES_LIST_END, Bin/binary>>) ->
   unpickle(record(notify_games_list_end, {size()}), Bin);
 
+read(<<?NOTIFY_SEATS_LIST_END, Bin/binary>>) ->
+  unpickle(record(notify_seats_list_end, {size()}), Bin);
+
 read(<<?NOTIFY_ERROR, Bin/binary>>) ->
   unpickle(record(notify_error, {error()}), Bin);
 
@@ -361,6 +364,9 @@ write(R) when is_record(R, notify_out) ->
 
 write(R) when is_record(R, notify_games_list_end) ->
   [?NOTIFY_GAMES_LIST_END | pickle(record(notify_games_list_end, {size()}), R)];
+
+write(R) when is_record(R, notify_seats_list_end) ->
+  [?NOTIFY_SEATS_LIST_END | pickle(record(notify_seats_list_end, {size()}), R)];
 
 write(R) when is_record(R, notify_error) ->
   [?NOTIFY_ERROR | pickle(record(notify_error, {error()}), R)];

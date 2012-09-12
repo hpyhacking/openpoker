@@ -81,6 +81,9 @@
 -define(NOTIFY_GAMES_LIST_END,127).
 -record(notify_games_list_end,{ size }).
 
+-define(NOTIFY_SEATS_LIST_END,128).
+-record(notify_seats_list_end,{ size }).
+
 -define(NOTIFY_ERROR,         255).
 -record(notify_error,         { error }).
 

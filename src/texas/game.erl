@@ -166,7 +166,9 @@ dispatch({query_seats, Player}, Ctx) when is_pid(Player)->
 
       player:notify(Player, R1)
   end,
-  lists:map(Fun, seat:get(Ctx#texas.seats)),
+  SeatsList = seat:get(Ctx#texas.seats),
+  lists:map(Fun, SeatsList),
+  player:notify(Player, #notify_seats_list_end{size = length(SeatsList)}),
   Ctx;
 
 dispatch(_, Ctx) ->
