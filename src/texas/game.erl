@@ -58,7 +58,7 @@ call({watch, {Identity, Process}}, Ctx = #texas{observers = Obs}) ->
   case proplists:lookup(Identity, Obs) of
     none ->
       {ok, ok, Ctx#texas{observers = [{Identity, Process}|Obs]}};
-    {Identity, Process} ->
+    {Identity, _Process} ->
       NewObs = [{Identity, Process}] ++ proplists:delete(Identity, Obs),
       {ok, ok, Ctx#texas{observers = NewObs}}
   end;
