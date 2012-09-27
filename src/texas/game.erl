@@ -131,16 +131,20 @@ dispatch(R = #cmd_leave{sn = SN, pid = PId}, Ctx = #texas{exp_seat = Exp, seats 
             proc = self()
           },
 
+          %% 目前还不清楚当玩家离开时设置PS_EMPTY会对后面的结算有什么影响。
+          %% 但当收到cmd_leave请求时确实应该将其状态设置为EMPTY而不是什么LEAVE。
+          %% 或者说还不太清楚LEAVE这个状态到底代表什么意思。
+
           LeavedExp = case Exp of
             #seat{pid = P} when P =:= PId ->
               game:fold(self(), #cmd_fold{pid = PId}),
-              Exp#seat{state = ?PS_LEAVE};
+              Exp#seat{state = ?PS_EMPTY};
             _ ->
               Exp
           end,
 
           broadcast(LeaveMsg, Ctx),
-          LeavedSeats = seat:set(SN, ?PS_LEAVE, Seats),
+          LeavedSeats = seat:set(SN, ?PS_EMPTY, Seats),
           Ctx#texas{seats = LeavedSeats, joined = Ctx#texas.joined - 1, exp_seat = LeavedExp};
         {aborted, Err} ->
           ?LOG([{game, error}, {leave, R}, {ctx, Ctx}, {error, Err}]),
