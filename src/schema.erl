@@ -81,4 +81,5 @@ setup_games() ->
   mnesia:dirty_write(#tab_game_config{id = 3, module = game, mods = ?DEF_MOD, limit = Limit#limit{small = 500, big = 1000}, seat_count = 9, start_delay = 3000, required = 2, timeout = 1000, max = 10}).
 
 setup_players() ->
-  mnesia:dirty_write(#tab_player_info{pid = 1, identity = "player", password = ?DEF_HASH_PWD, nick = "nick", photo = "default"}).
+  mnesia:dirty_write(#tab_player_info{pid = 1, identity = "player", password = ?DEF_HASH_PWD, nick = "nick", photo = "default", cash = 10000}),
+  mnesia:dirty_write(#tab_player_info{pid = 2, identity = "robot", password = ?DEF_HASH_PWD, nick = "robot", photo = "default", cash = 10000}).
