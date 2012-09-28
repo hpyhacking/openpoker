@@ -21,6 +21,7 @@ connect(ConnectTimeout) ->
   #pdata{connection_timer = Timer}.
 
 disconnect(#pdata{player_info = Info, player = Player}) when is_pid(Player) ->
+  player:logout(Player),
   genesis_players_sup:terminate_child(Info#tab_player_info.pid);
 
 disconnect(_) ->
@@ -34,11 +35,12 @@ handle_message({timeout, _, ?MODULE}, _LoopData) ->
   webtekcos:close().
 
 handle_data(Code, LoopData) when is_list(Code) ->
-  Data = base64:decode(list_to_binary(Code)),
-  case catch protocol:read(Data) of
+  error_logger:info_report({receive_code, Code}),
+  case catch protocol:read(base64:decode(list_to_binary(Code))) of
     {'EXIT', {_Reason, _Stack}} ->
       send(#notify_error{error = ?ERR_DATA}),
-      webtekcos:close();
+      webtekcos:close(),
+      LoopData;
     R ->
       handle_protocol(R, LoopData)
   end.
@@ -63,12 +65,16 @@ handle_protocol(#cmd_login{identity = Identity, password = Password}, LoopData) 
       % create player process by client process, 
       % receive {'EXIT'} when player process error
       case genesis_players_sup:start_child(Info) of
-        {ok, Player} when is_pid(Player) ->
-          player:client(Player),
-          player:info(Player),
-          player:balance(Player),
-          LoopData#pdata{player = Player, player_info = Info}
-      end
+        {ok, Player} ->
+          ok;
+        {error, {already_started, Player}} ->
+          ok
+      end,
+
+      player:client(Player),
+      player:info(Player),
+      player:balance(Player),
+      LoopData#pdata{player = Player, player_info = Info}
   end;
 
 handle_protocol(#cmd_logout{}, #pdata{player = Player, player_info = Info}) when is_pid(Player) ->

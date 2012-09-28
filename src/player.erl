@@ -118,6 +118,14 @@ handle_cast(R = #cmd_fold{game = G}, Data = #pdata{playing = P}) when G =:= P ->
   game:fold(G, R#cmd_fold{pid = Data#pdata.pid}),
   {noreply, Data};
 
+handle_cast(logout, Data = #pdata{playing = ?UNDEF}) ->
+  error_logger:info_report({player_loggout, nothing_join_game}),
+  {noreply, Data};
+
+handle_cast(logout, Data = #pdata{playing = Game}) ->
+  error_logger:info_report({player_loggout, join_game, Game}),
+  {noreply, handle_cast(#cmd_leave{game = Game}, Data)};
+  
 handle_cast(R, Data) ->
   ?LOG([{unknown_cast, R}]),
   {noreply, Data}.
@@ -210,7 +218,7 @@ auth(Info = #tab_player_info{disabled = Disabled}, player_disable) ->
   end.
 
 logout(Player) when is_pid(Player) ->
-  gen_server:call(Player, logout).
+  gen_server:cast(Player, logout).
 
 info(Player) when is_pid(Player) ->
   gen_server:cast(Player, #cmd_query_player{}).
