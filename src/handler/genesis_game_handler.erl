@@ -35,7 +35,6 @@ handle_message({timeout, _, ?MODULE}, _LoopData) ->
   webtekcos:close().
 
 handle_data(Code, LoopData) when is_list(Code) ->
-  error_logger:info_report({receive_code, Code}),
   case catch protocol:read(base64:decode(list_to_binary(Code))) of
     {'EXIT', {_Reason, _Stack}} ->
       send(#notify_error{error = ?ERR_DATA}),
