@@ -40,7 +40,7 @@
 -record(notify_bb,            { game, bb }).
 
 -define(NOTIFY_RAISE,         114).
--record(notify_raise,         { game, player, raise, call }).
+-record(notify_raise,         { game, player, sn, raise, call }).
 
 -define(NOTIFY_SEAT,          115).
 -record(notify_seat,          { game, sn, state, player, inplay, bet, nick, photo }).
