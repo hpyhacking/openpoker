@@ -4,6 +4,11 @@ DEFINE = Hash.new
 DEF_OUT =  ""
 EXPORT_OUT =  ""
 
+SAVED = {
+  :NotifyGame => 'game_id',
+  :NotifySeat => 'sn'
+}
+
 TYPES = {
   :card => "card",
   :cards => "cards",
@@ -37,12 +42,7 @@ TYPES = {
   :sn => "byte",
   :stage => "byte",
   :seats => "byte",
-  :joined => "byte",
-  :require => "byte",
-
-  :rank => "byte",
-  :suit => "byte",
-  :high1 => "byte",
+  :joined => "byte", :require => "byte", :rank => "byte", :suit => "byte", :high1 => "byte",
   :high2 => "byte",
   :error => "byte"
 }
@@ -82,10 +82,16 @@ def parse_wr file
 
     DEF_OUT << "class App.#{to_n record} extends App.Protocol\n"
     if DEFINE[record.upcase]
-      DEF_OUT << "  @reg '#{to_n record}', #{record_id}, #{DEFINE[record.upcase]}\n"
+      DEF_OUT << "  @reg '#{to_n record}', #{record_id}, #{DEFINE[record.upcase]}"
+      if SAVED.has_key? to_n(record).to_sym
+        DEF_OUT << "  @received_save '#{SAVED[to_n(record).to_sym]}'\n\n"
+      elsif 
+        DEF_OUT << "\n"
+      end
     else
       DEF_OUT << "  @reg '#{to_n record}', #{record_id}\n\n"
     end
+      
     EXPORT_OUT << "App.Protocol.join App.#{to_n record}\n"
   end
 end
@@ -96,6 +102,6 @@ parse_def "include/genesis_notify.hrl"
 parse_wr "include/genesis_protocol.hrl"
 parse_wr "include/genesis_notify.hrl"
 
-puts "# AUTO_GENERATE, DONT EDIT!!!\n"
+puts "# AUTO GENERATE, DONT EDIT!!!\n"
 puts DEF_OUT
 puts EXPORT_OUT
