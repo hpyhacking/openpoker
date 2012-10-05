@@ -52,10 +52,10 @@
 -record(notify_betting,       { game, call, min, max }).
 
 -define(NOTIFY_DRAW,          118).
--record(notify_draw,          { game, player, card }).
+-record(notify_draw,          { game, player, sn, card }).
 
 -define(NOTIFY_PRIVATE,       119).
--record(notify_private,       { game, player, card }).
+-record(notify_private,       { game, player, sn, card }).
 
 -define(NOTIFY_SHARED,        120).
 -record(notify_shared,        { game, card }).  

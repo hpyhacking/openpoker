@@ -207,10 +207,10 @@ read(<<?NOTIFY_BETTING, Bin/binary>>) ->
   unpickle(record(notify_betting, {game_id(), call(), min(), max()}), Bin);
 
 read(<<?NOTIFY_DRAW, Bin/binary>>) ->
-  unpickle(record(notify_draw, {game_id(), player_id(), card()}), Bin);
+  unpickle(record(notify_draw, {game_id(), player_id(), sn(), card()}), Bin);
 
 read(<<?NOTIFY_PRIVATE, Bin/binary>>) ->
-  unpickle(record(notify_private, {game_id(), player_id(), card()}), Bin);
+  unpickle(record(notify_private, {game_id(), player_id(), sn(), card()}), Bin);
 
 read(<<?NOTIFY_SHARED, Bin/binary>>) ->
   unpickle(record(notify_shared, {game_id(), card()}), Bin);
@@ -336,10 +336,10 @@ write(R) when is_record(R, notify_betting) ->
   [?NOTIFY_BETTING | pickle(record(notify_betting, {game_id(), call(), min(), max()}), R)];
 
 write(R) when is_record(R, notify_draw) ->
-  [?NOTIFY_DRAW | pickle(record(notify_draw, {game_id(), player_id(), card()}), R)];
+  [?NOTIFY_DRAW | pickle(record(notify_draw, {game_id(), player_id(), sn(), card()}), R)];
 
 write(R) when is_record(R, notify_private) ->
-  [?NOTIFY_PRIVATE | pickle(record(notify_private, {game_id(), player_id(), card()}), R)];
+  [?NOTIFY_PRIVATE | pickle(record(notify_private, {game_id(), player_id(), sn(), card()}), R)];
 
 write(R) when is_record(R, notify_shared) ->
   [?NOTIFY_SHARED | pickle(record(notify_shared, {game_id(), card()}), R)];

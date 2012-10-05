@@ -17,11 +17,11 @@ start([N, shared], Ctx) ->
 %%%
 
 draw([], Ctx) -> Ctx;
-draw([H = #seat{hand = Hand, pid = PId, process = P, identity = Identity}|T], Ctx = #texas{gid = Id, deck = D, seats = S}) ->
+draw([H = #seat{hand = Hand, pid = PId, sn = SN, process = P, identity = Identity}|T], Ctx = #texas{gid = Id, deck = D, seats = S}) ->
   {Card, ND} = deck:draw(D),
   NS = H#seat{ hand = hand:add(Hand, Card) },
-  player:notify(P, #notify_private{game = Id, player = PId, card = Card}),
-  game:broadcast(#notify_draw{game = Id, player = PId, card = 0}, Ctx, [Identity]),
+  player:notify(P, #notify_private{game = Id, player = PId, sn = SN, card = Card}),
+  game:broadcast(#notify_draw{game = Id, player = PId, sn = SN, card = 0}, Ctx, [Identity]),
   draw(T, Ctx#texas{ seats = seat:set(NS, S), deck = ND}).
 
 draw_shared(Ctx = #texas{gid = Id, deck = D, board = B}) ->
