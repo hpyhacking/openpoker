@@ -269,7 +269,7 @@ reward(#hand{seat_sn = SN, pid = PId}, Amt, Ctx = #texas{seats = Seats}) when Am
   
   case mnesia:transaction(Fun) of
     {atomic, RewardInplay} ->
-      broadcast(#notify_win{ game = Ctx#texas.gid, player = PId, amount = WinAmt}, Ctx),
+      broadcast(#notify_win{ game = Ctx#texas.gid, sn = SN, player = PId, amount = WinAmt}, Ctx),
       RewardedSeats = seat:set(Seat#seat{inplay = RewardInplay, bet = 0}, Seats),
       Ctx#texas{seats = RewardedSeats}
   end.

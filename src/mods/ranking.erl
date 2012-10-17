@@ -33,7 +33,7 @@ rank([H = #seat{hand = Hand}|T], Cards, Acc) ->
   rank(T, Cards, [H#seat{hand = RH}|Acc]).
 
 notify([], _Ctx) -> ok;
-notify([#seat{pid = PId, process = P, hand = Hand}|T], Ctx = #texas{gid = Id}) ->
+notify([#seat{pid = PId, process = P, hand = Hand, sn = SN}|T], Ctx = #texas{gid = Id}) ->
   #player_hand{rank = Rank, high1 = H1, high2 = H2, suit = Suit} = hand:player_hand(Hand),
-  player:notify(P, #notify_hand{ game = Id, player = PId, rank = Rank, high1 = H1, high2 = H2, suit = Suit}),
+  player:notify(P, #notify_hand{ game = Id, player = PId, sn = SN, rank = Rank, high1 = H1, high2 = H2, suit = Suit}),
   notify(T, Ctx).

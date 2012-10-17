@@ -216,13 +216,13 @@ read(<<?NOTIFY_SHARED, Bin/binary>>) ->
   unpickle(record(notify_shared, {game_id(), card()}), Bin);
 
 read(<<?NOTIFY_HAND, Bin/binary>>) ->
-  unpickle(record(notify_hand, {game_id(), player_id(), rank(), high1(), high2(), suit()}), Bin);
+  unpickle(record(notify_hand, {game_id(), player_id(), sn(), rank(), high1(), high2(), suit()}), Bin);
 
 read(<<?NOTIFY_CARDS, Bin/binary>>) ->
-  unpickle(record(notify_cards, {game_id(), player_id(), cards()}), Bin);
+  unpickle(record(notify_cards, {game_id(), player_id(), sn(), cards()}), Bin);
 
 read(<<?NOTIFY_WIN, Bin/binary>>) ->
-  unpickle(record(notify_win, {game_id(), player_id(), amount()}), Bin);
+  unpickle(record(notify_win, {game_id(), player_id(), sn(), amount()}), Bin);
 
 read(<<?NOTIFY_PLAYER, Bin/binary>>) ->
   unpickle(record(notify_player, {player_id(), nick(), photo()}), Bin);
@@ -345,13 +345,13 @@ write(R) when is_record(R, notify_shared) ->
   [?NOTIFY_SHARED | pickle(record(notify_shared, {game_id(), card()}), R)];
 
 write(R) when is_record(R, notify_hand) ->
-  [?NOTIFY_HAND | pickle(record(notify_hand, {game_id(), player_id(), rank(), high1(), high2(), suit()}), R)];
+  [?NOTIFY_HAND | pickle(record(notify_hand, {game_id(), player_id(), sn(), rank(), high1(), high2(), suit()}), R)];
 
 write(R) when is_record(R, notify_cards) ->
-  [?NOTIFY_CARDS | pickle(record(notify_cards, {game_id(), player_id(), cards()}), R)];
+  [?NOTIFY_CARDS | pickle(record(notify_cards, {game_id(), player_id(), sn(), cards()}), R)];
 
 write(R) when is_record(R, notify_win) ->
-  [?NOTIFY_WIN | pickle(record(notify_win, {game_id(), player_id(), amount()}), R)];
+  [?NOTIFY_WIN | pickle(record(notify_win, {game_id(), player_id(), sn(), amount()}), R)];
 
 write(R) when is_record(R, notify_player) ->
   [?NOTIFY_PLAYER | pickle(record(notify_player, {player_id(), nick(), photo()}), R)];

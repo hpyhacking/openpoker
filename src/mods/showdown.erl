@@ -38,8 +38,8 @@ reset_seat([H|T], Seats) ->
 
 
 show_cards([], _Ctx) -> ok;
-show_cards([#seat{pid = PId, identity = Identity, hand = Hand}|T], Ctx = #texas{gid = Id}) ->
-  game:broadcast(#notify_cards{ game = Id, player = PId, cards = Hand#hand.cards}, Ctx, [Identity]),
+show_cards([#seat{pid = PId, identity = Identity, hand = Hand, sn = SN}|T], Ctx = #texas{gid = Id}) ->
+  game:broadcast(#notify_cards{ game = Id, player = PId, sn = SN, cards = Hand#hand.cards}, Ctx, [Identity]),
   show_cards(T, Ctx).
 
 reward_winners([], Ctx) -> Ctx;
@@ -55,9 +55,9 @@ kick_poor_players([_|T], Ctx = #texas{}) ->
   kick_poor_players(T, Ctx).
       
 broadcast_ranks([], _Ctx) -> ok;
-broadcast_ranks([#seat{pid = PId, hand = Hand}|T], Ctx = #texas{gid = Id}) ->
+broadcast_ranks([#seat{pid = PId, hand = Hand, sn = SN}|T], Ctx = #texas{gid = Id}) ->
   #player_hand{rank = Rank, high1 = H1, high2 = H2, suit = Suit} = hand:player_hand(Hand),
-  game:broadcast(#notify_hand{ player = PId, game = Id, rank = Rank, high1 = H1, high2 = H2, suit = Suit}, Ctx),
+  game:broadcast(#notify_hand{ player = PId, sn = SN, game = Id, rank = Rank, high1 = H1, high2 = H2, suit = Suit}, Ctx),
   broadcast_ranks(T, Ctx).
 
 %% fuck code is here, winners comput to depend on record field position

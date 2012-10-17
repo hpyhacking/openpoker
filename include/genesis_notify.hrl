@@ -61,13 +61,13 @@
 -record(notify_shared,        { game, card }).  
 
 -define(NOTIFY_HAND,          121).
--record(notify_hand,          { game, player, rank, high1, high2, suit}).
+-record(notify_hand,          { game, player, sn, rank, high1, high2, suit}).
 
 -define(NOTIFY_CARDS,         122).
--record(notify_cards,         { game, player, cards }).
+-record(notify_cards,         { game, player, sn, cards }).
 
 -define(NOTIFY_WIN,           123).
--record(notify_win,           { game, player, amount }).
+-record(notify_win,           { game, player, sn, amount }).
 
 -define(NOTIFY_PLAYER,        124).
 -record(notify_player,        { player, nick, photo }).
