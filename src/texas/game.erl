@@ -55,13 +55,14 @@ call({watch, {Identity, Process}}, Ctx = #texas{observers = Obs}) ->
   player:notify(Process, R),
 
   %% update observer player process
-  case proplists:lookup(Identity, Obs) of
+  WatchedCtx = case proplists:lookup(Identity, Obs) of
     none ->
-      {ok, ok, Ctx#texas{observers = [{Identity, Process}|Obs]}};
+      Ctx#texas{observers = [{Identity, Process}|Obs]};
     {Identity, _Process} ->
       NewObs = [{Identity, Process}] ++ proplists:delete(Identity, Obs),
-      {ok, ok, Ctx#texas{observers = NewObs}}
-  end;
+      Ctx#texas{observers = NewObs}
+  end,
+  {ok, ok, dispatch({query_seats, Process}, WatchedCtx)};
 
 call({unwatch, Identity}, Ctx = #texas{observers = Obs}) ->
   case proplists:lookup(Identity, Obs) of
