@@ -19,6 +19,7 @@ start([], Ctx = #texas{gid = Id, seats = S, pot = P}) ->
   KickedCtx = kick_poor_players(seat:lookup(?PS_READY, RewardedSeats), RewardedCtx),
 
   ResetCtx= KickedCtx#texas{
+    board = [],
     pot = pot:new(),
     deck = deck:new(),
     seats = reset_seat(seat:get(KickedCtx#texas.seats), KickedCtx#texas.seats)
