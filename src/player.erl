@@ -31,24 +31,16 @@ init([R = #tab_player_info{pid = PId, identity = Identity, nick = Nick, photo = 
   ok = create_runtime(PId, self()),
   {ok, #pdata{pid = PId, self = self(), nick = list_to_binary(Nick), photo = list_to_binary(Photo), identity = Identity, record = R}}.
 
-%% player watch game
-handle_cast(#cmd_watch{game = G}, Data = #pdata{identity = Identity}) when is_pid(G) ->
-  game:watch(G, Identity),
-  {noreply, Data#pdata{ watching = G}};
-
-handle_cast(R = #cmd_watch{}, Data = #pdata{}) ->
-  ?LOG([{player, {error, watch}}, {join, R}, {pdata, Data}]),
+handle_cast(R = #cmd_watch{game = G}, Data = #pdata{})
+when Data#pdata.watching =:= ?UNDEF ->
+  game:watch(G, R#cmd_watch{pid = Data#pdata.pid, identity = Data#pdata.identity}),
   {noreply, Data};
 
-%% player unwatch game
-handle_cast(#cmd_unwatch{game = G}, Data = #pdata{watching = W, playing = P}) when P /= ?UNDEF; W /= G ->
+handle_cast(R = #cmd_unwatch{game = G}, Data = #pdata{})
+when Data#pdata.watching /= ?UNDEF ->
+  game:unwatch(G, R#cmd_unwatch{pid = Data#pdata.pid, identity = Data#pdata.identity}),
   {noreply, Data};
 
-handle_cast(#cmd_unwatch{game = G}, Data = #pdata{identity = Identity}) ->
-  game:unwatch(G, Identity),
-  {noreply, Data#pdata{ watching = ?UNDEF}};
-
-%% player join game
 handle_cast(#cmd_join{game = G, buyin = B}, Data = #pdata{watching = W, playing = P, record = R}) when is_pid(G), W =:= G, P =:= ?UNDEF, (R#tab_player_info.cash + R#tab_player_info.credit) < B  ->
   notify(#notify_error{error = ?ERR_JOIN_LESS_BALANCE}),
   {noreply, Data};
@@ -89,6 +81,16 @@ handle_cast(#cmd_query_balance{}, Data) ->
 handle_cast(#cmd_query_seats{game = Game}, Data) ->
   game:query_seats(Game),
   {noreply, Data};
+
+handle_cast({notify, R = #notify_watch{proc = G, player = P}}, Data = #pdata{pid = PId})
+when P =:= PId ->
+  forward_to_client(R, Data),
+  {noreply, Data#pdata{ watching = G }};
+
+handle_cast({notify, R = #notify_unwatch{proc = G, player = P}}, Data = #pdata{pid = PId})
+when P =:= PId ->
+  forward_to_client(R, Data),
+  {noreply, Data#pdata{ watching = ?UNDEF }};
 
 handle_cast({notify, R = #notify_join{proc = G, player = P}}, Data = #pdata{pid = PId}) when P =:= PId ->
   Info = reload_player_info(PId),

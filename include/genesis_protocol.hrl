@@ -25,10 +25,10 @@
 
 %% Texas Commands
 -define(CMD_WATCH,            31).
--record(cmd_watch,            { game, '|', player }).
+-record(cmd_watch,            { game, '|', player, pid, identity, proc }).
 
 -define(CMD_UNWATCH,          32).
--record(cmd_unwatch,          { game, '|', player }).
+-record(cmd_unwatch,          { game, '|', player, pid, identity, proc }).
 
 -define(CMD_JOIN,             33).
 -record(cmd_join,             { game, sn, buyin, '|', pid, identity, nick, photo, proc }).

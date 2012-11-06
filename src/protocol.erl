@@ -132,10 +132,10 @@ read(<<?CMD_QUERY_GAME, Bin/binary>>) ->
   unpickle(record(cmd_query_game, {}), Bin);
 
 read(<<?CMD_WATCH, Bin/binary>>) ->
-  unpickle(record(cmd_watch, {game(), internal(), internal()}), Bin);
+  unpickle(record(cmd_watch, {game(), internal(), internal(), internal(), internal(), internal()}), Bin);
 
 read(<<?CMD_UNWATCH, Bin/binary>>) ->
-  unpickle(record(cmd_unwatch, {game(), internal(), internal()}), Bin);
+  unpickle(record(cmd_unwatch, {game(), internal(), internal(), internal(), internal(), internal()}), Bin);
 
 read(<<?CMD_JOIN, Bin/binary>>) ->
   unpickle(record(cmd_join, {game(), sn(), buyin(), internal(), internal(), internal(), internal(), internal(), internal()}), Bin);
@@ -239,6 +239,12 @@ read(<<?NOTIFY_GAMES_LIST_END, Bin/binary>>) ->
 read(<<?NOTIFY_SEATS_LIST_END, Bin/binary>>) ->
   unpickle(record(notify_seats_list_end, {size()}), Bin);
 
+read(<<?NOTIFY_WATCH, Bin/binary>>) ->
+  unpickle(record(notify_watch, {game_id(), player_id(), internal(), internal()}), Bin);
+
+read(<<?NOTIFY_UNWATCH, Bin/binary>>) ->
+  unpickle(record(notify_unwatch, {game_id(), player_id(), internal(), internal()}), Bin);
+
 read(<<?NOTIFY_ERROR, Bin/binary>>) ->
   unpickle(record(notify_error, {error()}), Bin);
 
@@ -261,10 +267,10 @@ write(R) when is_record(R, cmd_query_game) ->
   [?CMD_QUERY_GAME | pickle(record(cmd_query_game, {}), R)];
 
 write(R) when is_record(R, cmd_watch) ->
-  [?CMD_WATCH | pickle(record(cmd_watch, {game(), internal(), internal()}), R)];
+  [?CMD_WATCH | pickle(record(cmd_watch, {game(), internal(), internal(), internal(), internal(), internal()}), R)];
 
 write(R) when is_record(R, cmd_unwatch) ->
-  [?CMD_UNWATCH | pickle(record(cmd_unwatch, {game(), internal(), internal()}), R)];
+  [?CMD_UNWATCH | pickle(record(cmd_unwatch, {game(), internal(), internal(), internal(), internal(), internal()}), R)];
 
 write(R) when is_record(R, cmd_join) ->
   [?CMD_JOIN | pickle(record(cmd_join, {game(), sn(), buyin(), internal(), internal(), internal(), internal(), internal(), internal()}), R)];
@@ -367,6 +373,12 @@ write(R) when is_record(R, notify_games_list_end) ->
 
 write(R) when is_record(R, notify_seats_list_end) ->
   [?NOTIFY_SEATS_LIST_END | pickle(record(notify_seats_list_end, {size()}), R)];
+
+write(R) when is_record(R, notify_watch) ->
+  [?NOTIFY_WATCH | pickle(record(notify_watch, {game_id(), player_id(), internal(), internal()}), R)];
+
+write(R) when is_record(R, notify_unwatch) ->
+  [?NOTIFY_UNWATCH | pickle(record(notify_unwatch, {game_id(), player_id(), internal(), internal()}), R)];
 
 write(R) when is_record(R, notify_error) ->
   [?NOTIFY_ERROR | pickle(record(notify_error, {error()}), R)];

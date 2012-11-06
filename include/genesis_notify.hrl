@@ -84,6 +84,12 @@
 -define(NOTIFY_SEATS_LIST_END,128).
 -record(notify_seats_list_end,{ size }).
 
+-define(NOTIFY_WATCH,         129).
+-record(notify_watch,         { game, player, '|', proc }).
+
+-define(NOTIFY_UNWATCH,       130).
+-record(notify_unwatch,       { game, player, '|', proc }).
+
 -define(NOTIFY_ERROR,         255).
 -record(notify_error,         { error }).
 

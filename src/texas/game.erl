@@ -3,11 +3,8 @@
 
 -export([id/0, init/2, stop/1, dispatch/2, call/2]).
 -export([start/0, start/1, start_conf/2, config/0]).
-
--export([ctx/1, state/1]).
-
--export([watch/2, unwatch/2, join/2, leave/2, bet/2, reward/3, query_seats/1, info/1, list/0]).
--export([raise/2, fold/2]).
+-export([watch/2, unwatch/2, join/2, leave/2, bet/2]).
+-export([reward/3, query_seats/1, list/0, raise/2, fold/2]).
 -export([broadcast/2, broadcast/3]).
 
 -include("genesis.hrl").
@@ -41,49 +38,42 @@ stop(#texas{gid = GID, timer = Timer}) ->
   catch erlang:cancel_timer(Timer),
   clear_runtime(GID).
 
-call({watch, {Identity, Process}}, Ctx = #texas{observers = Obs}) ->
-  R = #notify_game_detail{
-    game = Ctx#texas.gid, 
-    pot = pot:total(Ctx#texas.pot),
-    stage = Ctx#texas.stage,
-    limit = Ctx#texas.limit,
-    seats = seat:info(size, Ctx#texas.seats),
-    require = Ctx#texas.required,
-    joined = Ctx#texas.joined
-  },
-
-  player:notify(Process, R),
-
-  %% update observer player process
-  WatchedCtx = case proplists:lookup(Identity, Obs) of
-    none ->
-      Ctx#texas{observers = [{Identity, Process}|Obs]};
-    {Identity, _Process} ->
-      NewObs = [{Identity, Process}] ++ proplists:delete(Identity, Obs),
-      Ctx#texas{observers = NewObs}
-  end,
-  {ok, ok, dispatch({query_seats, Process}, WatchedCtx)};
-
-call({unwatch, Identity}, Ctx = #texas{observers = Obs}) ->
-  case proplists:lookup(Identity, Obs) of
-    none ->
-      {ok, ok, Ctx};
-    {Identity, _Proc} ->
-      {ok, ok, Ctx#texas{observers = proplists:delete(Identity, Obs)}}
-  end;
-
-call(info, Ctx = #texas{gid = GId, joined = Joined, required = Required, seats = Seats, limit = Limit}) ->
-  {ok, #notify_game{
-      game = GId,
-      name = <<"TEXAS_TABLE">>,
-      limit = Limit,
-      seats = seat:info(size, Seats),
-      require = Required,
-      joined = Joined
-    }, Ctx};
-
-call(pdata, Ctx) ->
+call(_, Ctx) ->
   {ok, Ctx, Ctx}.
+
+dispatch(R = #cmd_watch{proc = Proc, identity = Identity}, Ctx = #texas{observers = Obs}) ->
+  player:notify(Proc, gen_game_detail(Ctx)),
+
+  WatchedCtx = case proplists:lookup(Identity, Obs) of
+    {Identity, _Proc} ->
+      NewObs = [{Identity, Proc}] ++ proplists:delete(Identity, Obs),
+      Ctx#texas{observers = NewObs};
+    none ->
+      Ctx#texas{observers = [{Identity, Proc}] ++ Obs}
+  end,
+
+  notify_player_seats(Proc, WatchedCtx),
+
+  NotifyWatch = #notify_watch{
+    proc = self(),
+    game = R#cmd_watch.game, 
+    player = R#cmd_watch.player},
+  broadcast(NotifyWatch, WatchedCtx),
+
+  WatchedCtx;
+
+dispatch(R = #cmd_unwatch{identity = Identity}, Ctx = #texas{observers = Obs}) ->
+  case proplists:lookup(Identity, Obs) of
+    {Identity, _Proc} ->
+      NotifyUnwatch = #notify_unwatch{
+        proc = self(),
+        game = R#cmd_unwatch.game, 
+        player = R#cmd_unwatch.player},
+      broadcast(NotifyUnwatch, Ctx),
+      Ctx#texas{observers = proplists:delete(Identity, Obs)};
+    none ->
+      Ctx
+  end;
 
 dispatch(#cmd_join{buyin = Buyin}, Ctx = #texas{limit = Limit, joined = Joined, max_joined = MaxJoin})
 when Joined =:= MaxJoin; Buyin < Limit#limit.min; Buyin > Limit#limit.max ->
@@ -157,27 +147,7 @@ dispatch(R = #cmd_leave{sn = SN, pid = PId}, Ctx = #texas{exp_seat = Exp, seats 
   end;
 
 dispatch({query_seats, Player}, Ctx) when is_pid(Player)->
-  Fun = fun(R) ->
-      R1 = #notify_seat{
-        game = Ctx#texas.gid,
-        sn = R#seat.sn,
-        state = R#seat.state,
-        player = R#seat.pid,
-        inplay = R#seat.inplay,
-        bet = R#seat.bet,
-        nick = R#seat.nick,
-        photo = R#seat.photo
-      },
-
-      player:notify(Player, R1)
-  end,
-  SeatsList = seat:get(Ctx#texas.seats),
-  lists:map(Fun, SeatsList),
-  player:notify(Player, #notify_seats_list_end{size = length(SeatsList)}),
-  Ctx;
-
-dispatch(_, Ctx) ->
-  Ctx.
+  notify_player_seats(Player, Ctx).
 
 %%%
 %%% client
@@ -298,11 +268,11 @@ list() ->
   {atomic, Result} = mnesia:transaction(fun() -> mnesia:foldl(Fun, [], tab_game_xref) end),
   Result.
 
-watch(Game, Identity) when is_pid(Game), is_list(Identity) ->
-  gen_server:call(Game, {watch, {Identity, self()}}).
+watch(Game, R = #cmd_watch{}) when is_pid(Game) ->
+  gen_server:cast(Game, R#cmd_watch{proc = self()}).
 
-unwatch(Game, Identity) when is_pid(Game), is_list(Identity) ->
-  gen_server:call(Game, {unwatch, Identity}).
+unwatch(Game, R =  #cmd_unwatch{}) when is_pid(Game) ->
+  gen_server:cast(Game, R#cmd_unwatch{proc = self()}).
 
 join(Game, R = #cmd_join{}) when is_pid(Game) ->
   gen_server:cast(Game, R#cmd_join{proc = self()}).
@@ -318,12 +288,6 @@ fold(Game, R = #cmd_fold{}) when is_pid(Game) ->
 
 query_seats(Game) when is_pid(Game) ->
   gen_server:cast(Game, {query_seats, self()}).
-
-ctx(Id) ->  % get exch context
-  gen_server:call(?LOOKUP_GAME(Id), ctx).
-
-state(Id) -> % get exch pdata
-  gen_server:call(?LOOKUP_GAME(Id), {pdata, state}).
 
 %%%
 %%% private
@@ -342,6 +306,26 @@ create_runtime(GID, R) ->
 
 clear_runtime(GID) ->
   ok = mnesia:dirty_delete(tab_game_xref, GID).
+
+notify_player_seats(Ctx, Player) ->
+  Fun = fun(R) ->
+      R1 = #notify_seat{
+        game = Ctx#texas.gid,
+        sn = R#seat.sn,
+        state = R#seat.state,
+        player = R#seat.pid,
+        inplay = R#seat.inplay,
+        bet = R#seat.bet,
+        nick = R#seat.nick,
+        photo = R#seat.photo
+      },
+
+      player:notify(Player, R1)
+  end,
+  SeatsList = seat:get(Ctx#texas.seats),
+  lists:map(Fun, SeatsList),
+  player:notify(Player, #notify_seats_list_end{size = length(SeatsList)}),
+  Ctx.
 
 default_mods() -> ?DEF_MOD.
 
@@ -403,3 +387,14 @@ do_join(R = #cmd_join{identity = Identity, proc = Process}, Seat = #seat{}, Ctx 
       ?LOG([{game, error}, {join, R}, {ctx, Ctx}, {error, not_find_observer}]),
       Ctx
   end.
+
+gen_game_detail(Ctx = #texas{}) ->
+  #notify_game_detail{
+    game = Ctx#texas.gid, 
+    pot = pot:total(Ctx#texas.pot),
+    stage = Ctx#texas.stage,
+    limit = Ctx#texas.limit,
+    seats = seat:info(size, Ctx#texas.seats),
+    require = Ctx#texas.required,
+    joined = Ctx#texas.joined
+  }.
