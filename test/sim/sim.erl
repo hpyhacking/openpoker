@@ -18,8 +18,14 @@ join_and_start_game([{Key, _Id}|T], SN) ->
   ?assertMatch(#notify_game_detail{}, GameDetail),
   check_notify_seat(Key, GameDetail#notify_game_detail.seats),
   ?assertMatch(#notify_watch{}, sim_client:head(Key)),
-  sim_client:send(Key, #cmd_join{game = ?GAME, sn = SN, buyin = 100}),
-  join_and_start_game(T, SN + 1).
+  case SN of
+    ?UNDEF ->
+      sim_client:send(Key, #cmd_join{game = ?GAME, sn = SN, buyin = 100}),
+      join_and_start_game(T, ?UNDEF);
+    SN ->
+      sim_client:send(Key, #cmd_join{game = ?GAME, sn = 0, buyin = 100}),
+      join_and_start_game(T, SN + 1)
+  end.
 
 clean_box([]) -> ok;
 clean_box([{Key, _}|T]) ->
