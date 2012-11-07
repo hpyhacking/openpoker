@@ -21,8 +21,6 @@ start(_StartType, _StartArgs) ->
       ok
   end,
 
-  io:format("==============================================~n"),
-  io:format(" STARTING GENESIS SERVER ...~n"),
   genesis_sup:start_link().
 
 stop(_State) ->

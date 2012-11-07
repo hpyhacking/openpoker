@@ -49,14 +49,6 @@ handle_cast(R = #cmd_join{game = G}, Data = #pd{watching = W, playing = P}) when
   game:join(G, R#cmd_join{pid = Data#pd.pid, identity = Data#pd.identity, nick = Data#pd.nick, photo = Data#pd.photo}),
   {noreply, Data};
 
-handle_cast(R = #cmd_join{game = G}, Data = #pd{identity = Identity, watching = W, playing = P}) when is_pid(G), W =:= ?UNDEF, P =:= ?UNDEF ->
-  game:watch(G, Identity),
-  handle_cast(R, Data#pd{watching = G});
-
-handle_cast(R = #cmd_join{}, Data = #pd{}) ->
-  ?LOG([{player, {error, join}}, {join, R}, {pd, Data}]),
-  {noreply, Data};
-
 %% player leave game
 handle_cast(R = #cmd_leave{game = G}, Data = #pd{playing = P, playing_sn = SN}) when G =:= P, SN /= 0 ->
   game:leave(G, R#cmd_leave{pid = Data#pd.pid, sn = SN}),

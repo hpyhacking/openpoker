@@ -56,8 +56,8 @@ dispatch(R = #cmd_watch{proc = Proc, identity = Identity}, Ctx = #texas{observer
 
   NotifyWatch = #notify_watch{
     proc = self(),
-    game = R#cmd_watch.game, 
-    player = R#cmd_watch.player},
+    game = Ctx#texas.gid,
+    player = R#cmd_watch.pid},
   broadcast(NotifyWatch, WatchedCtx),
 
   WatchedCtx;
@@ -67,8 +67,8 @@ dispatch(R = #cmd_unwatch{identity = Identity}, Ctx = #texas{observers = Obs}) -
     {Identity, _Proc} ->
       NotifyUnwatch = #notify_unwatch{
         proc = self(),
-        game = R#cmd_unwatch.game, 
-        player = R#cmd_unwatch.player},
+        game = Ctx#texas.gid,
+        player = R#cmd_unwatch.pid},
       broadcast(NotifyUnwatch, Ctx),
       Ctx#texas{observers = proplists:delete(Identity, Obs)};
     none ->
@@ -307,7 +307,7 @@ create_runtime(GID, R) ->
 clear_runtime(GID) ->
   ok = mnesia:dirty_delete(tab_game_xref, GID).
 
-notify_player_seats(Ctx, Player) ->
+notify_player_seats(Player, Ctx) ->
   Fun = fun(R) ->
       R1 = #notify_seat{
         game = Ctx#texas.gid,
@@ -327,7 +327,8 @@ notify_player_seats(Ctx, Player) ->
   player:notify(Player, #notify_seats_list_end{size = length(SeatsList)}),
   Ctx.
 
-default_mods() -> ?DEF_MOD.
+default_mods() ->
+  ?DEF_MOD.
 
 do_join(R = #cmd_join{identity = Identity, proc = Process}, Seat = #seat{}, Ctx = #texas{observers = Obs, seats = Seats}) ->
   case proplists:lookup(Identity, Obs) of

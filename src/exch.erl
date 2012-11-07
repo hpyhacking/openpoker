@@ -8,7 +8,7 @@
 
 -include("genesis.hrl").
 
--record(pdata, {
+-record(exch, {
     id,
     module,
     state,
@@ -54,7 +54,7 @@ init([Module, Id, Conf, Mods]) ->
   process_flag(trap_exit, true),
   Ctx = Module:init(Id, Conf),
 
-  Data = #pdata{
+  Data = #exch{
     id = Id,
     module = Module,
     mods = Mods,
@@ -73,23 +73,17 @@ init([Module, Id, Conf, Mods]) ->
 handle_cast(stop, Data) ->
   {stop, normal, Data};
 
-handle_cast(Msg, Data = #pdata{stack = Stack, ctx = Ctx, state = State}) ->
+handle_cast(Msg, Data = #exch{stack = Stack, ctx = Ctx, state = State}) ->
   {Mod, _} = hd(Stack),
   advance(Mod:State(Msg, Ctx), Msg, Data).
 
-handle_call({pdata, state}, _From, Data) ->
-  {reply, Data#pdata.state, Data};
-handle_call(ctx, _From, Data) ->
-  {reply, Data#pdata.ctx, Data};
-handle_call(kill, _From, Data) ->
-  {stop, normal, ok, Data};
-handle_call(Msg, _From, Data = #pdata{module = Module, ctx = Context}) ->
+handle_call(Msg, _From, Data = #exch{module = Module, ctx = Context}) ->
   {ok, Result, NewContext} = Module:call(Msg, Context),
-  {reply, Result, Data#pdata{ctx = NewContext}}.
+  {reply, Result, Data#exch{ctx = NewContext}}.
 
-terminate(normal, #pdata{module = Module, ctx = Ctx}) ->
+terminate(normal, #exch{module = Module, ctx = Ctx}) ->
   Module:stop(Ctx);
-terminate(_, #pdata{module = Module, ctx = Ctx}) ->
+terminate(_, #exch{module = Module, ctx = Ctx}) ->
   Module:stop(Ctx).
 
 handle_info(Msg, Data) ->
@@ -102,36 +96,35 @@ code_change(_OldVsn, Data, _Extra) ->
 %%% private
 %%%
 
-init(Msg, Data = #pdata{ stack = [{Mod, Params}|_], ctx = Ctx }) ->
-  advance(Mod:start(Params, Ctx), Msg, Data#pdata{ state = ?UNDEF }).
+init(Msg, Data = #exch{ stack = [{Mod, Params}|_], ctx = Ctx }) ->
+  advance(Mod:start(Params, Ctx), Msg, Data#exch{ state = ?UNDEF }).
 
-advance({continue, Data, Ctx}, _Msg, Data = #pdata{}) ->
-  {noreply, Data#pdata{ ctx = Ctx }};
+advance({continue, Data, Ctx}, _Msg, Data = #exch{}) ->
+  {noreply, Data#exch{ ctx = Ctx }};
 
 advance({next, State, Ctx}, _Msg, Data) ->
-  {noreply, Data#pdata{ state = State, ctx = Ctx }};
+  {noreply, Data#exch{ state = State, ctx = Ctx }};
 
-advance({skip, Ctx}, Msg, Data = #pdata{module = Module}) ->
-  {noreply, Data#pdata{ ctx = Module:dispatch(Msg, Ctx) }};
+advance({skip, Ctx}, Msg, Data = #exch{module = Module}) ->
+  {noreply, Data#exch{ ctx = Module:dispatch(Msg, Ctx) }};
 
-advance({stop, Ctx}, _Msg, Data = #pdata{ stack = [_] }) ->
-  ?LOG([{exch, stack_empty}]),
-  {stop, normal, Data#pdata{ ctx = Ctx, stack = [] }};
+advance({stop, Ctx}, _Msg, Data = #exch{ stack = [_] }) ->
+  {stop, normal, Data#exch{ ctx = Ctx, stack = [] }};
 
-advance({stop, Ctx}, Msg, Data = #pdata{ stack = [_|T] }) ->
-  init(Msg, Data#pdata{ ctx = Ctx, stack = T });
+advance({stop, Ctx}, Msg, Data = #exch{ stack = [_|T] }) ->
+  init(Msg, Data#exch{ ctx = Ctx, stack = T });
 
-advance({repeat, Ctx}, Msg, Data = #pdata{}) ->
-  init(Msg, Data#pdata{ ctx = Ctx });
+advance({repeat, Ctx}, Msg, Data = #exch{}) ->
+  init(Msg, Data#exch{ ctx = Ctx });
 
-advance({goto, top, Ctx}, Msg, Data = #pdata{mods = Mods}) ->
-  init(Msg, Data#pdata{ ctx = Ctx, stack = Mods});
+advance({goto, top, Ctx}, Msg, Data = #exch{mods = Mods}) ->
+  init(Msg, Data#exch{ ctx = Ctx, stack = Mods});
 
-advance({goto, Mod, Ctx}, Msg, Data = #pdata{stack = Stack}) ->
-  init(Msg, Data#pdata{ ctx = Ctx, stack = trim_stack(Mod, Stack) });
+advance({goto, Mod, Ctx}, Msg, Data = #exch{stack = Stack}) ->
+  init(Msg, Data#exch{ ctx = Ctx, stack = trim_stack(Mod, Stack) });
 
 advance(Command, Msg, Data) ->
-  ?LOG([{command, Command}, {msg, Msg}, {mod, hd(Data#pdata.mods)}, {state, Data#pdata.state}, {pdata, Data}]),
+  ?LOG([{command, Command}, {msg, Msg}, {mod, hd(Data#exch.mods)}, {state, Data#exch.state}, {exch, Data}]),
   {noreply, none}.
 
 trim_stack(_Mod, L = [{_LastMod, _}]) -> L;

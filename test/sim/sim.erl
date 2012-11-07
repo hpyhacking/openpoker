@@ -5,19 +5,33 @@
 -include("genesis_test.hrl").
 
 join_and_start_game(Players) ->
-  ok = join_and_start_game(Players, 1),
+  join_and_start_game(Players, 1),
   ?SLEEP,
-  Len = length(Players) - 1,
-  [H|_] = lists:reverse(Players),
-  check_notify_join(lists:delete(H, Players), Len, Len),
+  clean_box(Players),
+  go_go_go(),
+  ?SLEEP,
   check_notify_start(Players).
 
 join_and_start_game([], _SN) -> ok;
-join_and_start_game([{Key, Id}|T], SN) ->
+join_and_start_game([{Key, _Id}|T], SN) ->
+  sim_client:send(Key, #cmd_watch{game = ?GAME}),
+  GameDetail = sim_client:head(Key),
+  ?assertMatch(#notify_game_detail{}, GameDetail),
+  check_notify_seat(Key, GameDetail#notify_game_detail.seats),
+  ?assertMatch(#notify_watch{}, sim_client:head(Key)),
   sim_client:send(Key, #cmd_join{game = ?GAME, sn = SN, buyin = 100}),
-  ?assertMatch(#notify_game_detail{}, sim_client:head(Key)),
-  ?assertMatch(#notify_join{player = Id}, sim_client:head(Key)),
   join_and_start_game(T, SN + 1).
+
+clean_box([]) -> ok;
+clean_box([{Key, _}|T]) ->
+  sim_client:box(Key),
+  clean_box(T).
+  
+check_notify_seat(Key, 0) -> 
+  ?assertMatch(#notify_seats_list_end{}, sim_client:head(Key));
+check_notify_seat(Key, N) ->
+  ?assertMatch(#notify_seat{}, sim_client:head(Key)),
+  check_notify_seat(Key, N - 1).
 
 check_notify_start([]) -> ok;
 check_notify_start([{Key, _Id}|T]) ->
@@ -159,3 +173,37 @@ turnover_player_leave({Actor, Players}, {Call, Min, Max}) ->
   sim_client:send(Actor, #cmd_leave{game = ?GAME}),
   sim:check_notify_leave(Actor, Players),
   sim:check_notify_fold(SN, proplists:delete(Actor, Players)).
+
+setup() ->
+  error_logger:tty(false),
+  application:start(sasl),
+  schema_test:init(),
+  ?assert(ok =:= application:start(genesis)),
+  setup_players(?PLAYERS),
+  error_logger:tty(true).
+
+setup_players(L) when is_list(L) ->
+  lists:map(fun ({Key, R}) ->
+        ?assertNot(is_pid(whereis(Key))),
+        Identity = list_to_binary(R#tab_player_info.identity),
+        mnesia:dirty_write(R),
+        sim_client:start(Key),
+        sim_client:send(Key, #cmd_login{identity = Identity, password = <<?DEF_PWD>>}),
+        ?assertMatch(#notify_player{}, sim_client:head(Key)),
+        ?assertMatch(#notify_acount{}, sim_client:head(Key)),
+        {Key, R}
+    end, L).
+
+clean(_) ->
+  error_logger:tty(false),
+  ?assert(ok =:= application:stop(genesis)).
+
+go_go_go() ->
+  gen_server:cast(?GAME_NAME, go_go_go).
+
+game_state() ->
+  {status, _Proc, _Mod, SItem} = sys:get_status(?GAME_NAME),
+  [_PDict, _SysStaqte, _Parent, _Dbg, Misc] = SItem,
+  [_H|[[{"State", State}]|[]]] = proplists:get_all_values(data, Misc),
+  State#exch.state.
+

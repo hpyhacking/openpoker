@@ -81,20 +81,8 @@ box(Id) ->
 player(Identity, Players) when is_atom(Identity) ->
   proplists:get_value(Identity, Players).
 
-setup_players(L) when is_list(L) ->
-  lists:map(fun ({Key, R}) ->
-        ?assertNot(is_pid(whereis(Key))),
-        Identity = list_to_binary(R#tab_player_info.identity),
-        mnesia:dirty_write(R),
-        P = sim_client:start(Key),
-        sim_client:send(Key, #cmd_login{identity = Identity, password = <<?DEF_PWD>>}),
-        error_logger:info_report({sim_client_match, Key}),
-        A = sim_client:head(Key),
-        error_logger:info_report({sim_client_match_end, Key}),
-        ?assertMatch(#notify_player{}, sim_client:head(Key)),
-        ?assertMatch(#notify_acount{}, sim_client:head(Key)),
-        {Key, R}
-    end, L).
+setup_players(L) ->
+  sim:setup_players(L).
 
 %%%
 %%% callback
@@ -108,7 +96,7 @@ loop(Mod, LoopData, Data = #pdata{box = Box}) ->
   receive
     %% sim send protocol from client to server
     {sim, send, R} when is_tuple(R) ->
-      Bin = list_to_binary(protocol:write(R)),
+      Bin = base64:encode(list_to_binary(protocol:write(R))),
       NewLoopData = Mod:handle_data(Bin, LoopData),
       loop(Mod, NewLoopData, Data);
     %% sim get client side header message
@@ -129,7 +117,7 @@ loop(Mod, LoopData, Data = #pdata{box = Box}) ->
       Data#pdata.host ! Box,
       exit(normal);
     {send, Bin} when is_binary(Bin) ->
-      R = protocol:read(Bin),
+      R = protocol:read(base64:decode(Bin)),
       loop(Mod, LoopData, Data#pdata{box = Box ++ [R]});
     Message ->
       NewLoopData = Mod:handle_message(Message, LoopData),

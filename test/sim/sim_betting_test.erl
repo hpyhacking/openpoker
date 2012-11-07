@@ -6,7 +6,7 @@
 -define(TWO_PLAYERS, [{?JACK, ?JACK_ID}, {?TOMMY, ?TOMMY_ID}]).
 -define(THREE_PLAYERS, ?TWO_PLAYERS ++ [{?FOO, ?FOO_ID}]).
 
-normal_betting_test_() -> {setup, fun setup_normal/0, fun cleanup/1, fun () ->
+normal_betting_test_() -> {setup, fun setup_normal/0, fun sim:clean/1, fun () ->
         Players = ?THREE_PLAYERS,
         sim:join_and_start_game(Players),
 
@@ -74,10 +74,10 @@ normal_betting_test_() -> {setup, fun setup_normal/0, fun cleanup/1, fun () ->
 
         %% FLOP OVER
         sim:check_notify_stage_end(?GS_FLOP, Players),
-        ?assertMatch(stop, game:state(?GAME))
+        ?assertMatch(stop, sim:game_state())
     end}.
 
-normal_betting_and_fold_test_() -> {setup, fun setup_normal/0, fun cleanup/1, fun () ->
+normal_betting_and_fold_test_() -> {setup, fun setup_normal/0, fun sim:clean/1, fun () ->
         B = 1, SB = 2, BB = 3,
         Players = set_sn([{?JACK, B}, {?TOMMY, SB}, {?FOO, BB}], ?THREE_PLAYERS),
 
@@ -100,99 +100,89 @@ normal_betting_and_fold_test_() -> {setup, fun setup_normal/0, fun cleanup/1, fu
         ?assertMatch(stop, game:state(?GAME))
     end}.
 
-normal_betting_and_leave_test_() -> {setup, fun setup_normal/0, fun cleanup/1, fun () ->
-        B = 1, SB = 2, BB = 3,
-        Players = set_sn([{?JACK, B}, {?TOMMY, SB}, {?FOO, BB}], ?THREE_PLAYERS),
+%normal_betting_and_leave_test_() -> {setup, fun setup_normal/0, fun sim:clean/1, fun () ->
+        %B = 1, SB = 2, BB = 3,
+        %Players = set_sn([{?JACK, B}, {?TOMMY, SB}, {?FOO, BB}], ?THREE_PLAYERS),
 
-        sim:join_and_start_game(Players),
-        sim:check_blind(Players, B, SB, BB),
+        %sim:join_and_start_game(Players),
+        %sim:check_blind(Players, B, SB, BB),
 
-        sim:turnover_player_raise({?JACK, Players},  {20, 20, 80}, 0),
-        sim:turnover_player_raise({?TOMMY, Players}, {10, 20, 80}, 0),
-        sim:turnover_player_raise({?FOO, Players},   { 0, 20, 80}, 0),
+        %sim:turnover_player_raise({?JACK, Players},  {20, 20, 80}, 0),
+        %sim:turnover_player_raise({?TOMMY, Players}, {10, 20, 80}, 0),
+        %sim:turnover_player_raise({?FOO, Players},   { 0, 20, 80}, 0),
 
-        sim:check_notify_stage_end(?GS_PREFLOP, Players),
-        sim:check_notify_stage(?GS_FLOP, Players),
+        %sim:check_notify_stage_end(?GS_PREFLOP, Players),
+        %sim:check_notify_stage(?GS_FLOP, Players),
 
-        sim:turnover_player_raise({?TOMMY, Players}, { 0, 20, 80}, 20),
-        sim:turnover_player_leave({?FOO, Players},   {20, 20, 60}),
-        sim:turnover_player_raise({?JACK, proplists:delete(?FOO, Players)},  {20, 20, 60}, 0),
+        %sim:turnover_player_raise({?TOMMY, Players}, { 0, 20, 80}, 20),
+        %sim:turnover_player_leave({?FOO, Players},   {20, 20, 60}),
+        %sim:turnover_player_raise({?JACK, proplists:delete(?FOO, Players)},  {20, 20, 60}, 0),
 
-        sim:check_notify_stage_end(?GS_FLOP, proplists:delete(?FOO, Players)),
-        ?assertMatch(#texas{joined = 2}, game:ctx(?GAME)),
-        ?assertMatch(stop, game:state(?GAME))
-    end}.
+        %sim:check_notify_stage_end(?GS_FLOP, proplists:delete(?FOO, Players)),
+        %?assertMatch(#texas{joined = 2}, game:ctx(?GAME)),
+        %?assertMatch(stop, game:state(?GAME))
+    %end}.
 
-headsup_betting_test_() -> {setup, fun setup_normal/0, fun cleanup/1, fun () ->
-        SB = 1, BB = 2,
-        Players = set_sn([{?JACK, SB}, {?TOMMY, BB}], ?TWO_PLAYERS),
+%headsup_betting_test_() -> {setup, fun setup_normal/0, fun sim:clean/1, fun () ->
+        %SB = 1, BB = 2,
+        %Players = set_sn([{?JACK, SB}, {?TOMMY, BB}], ?TWO_PLAYERS),
 
-        sim:join_and_start_game(Players),
-        sim:check_blind(Players, SB, SB, BB),
+        %sim:join_and_start_game(Players),
+        %sim:check_blind(Players, SB, SB, BB),
 
-        sim:turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
-        sim:turnover_player_raise({?TOMMY, Players}, { 0, 20, 80}, 0),
+        %sim:turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
+        %sim:turnover_player_raise({?TOMMY, Players}, { 0, 20, 80}, 0),
 
-        sim:check_notify_stage_end(?GS_PREFLOP, Players),
-        sim:check_notify_stage(?GS_FLOP, Players),
+        %sim:check_notify_stage_end(?GS_PREFLOP, Players),
+        %sim:check_notify_stage(?GS_FLOP, Players),
 
-        sim:turnover_player_raise({?TOMMY, Players}, {0, 20, 80}, 0),
-        sim:turnover_player_raise({?JACK, Players},  {0, 20, 80}, 20),
-        sim:turnover_player_raise({?TOMMY, Players}, {20, 20, 60}, 0),
+        %sim:turnover_player_raise({?TOMMY, Players}, {0, 20, 80}, 0),
+        %sim:turnover_player_raise({?JACK, Players},  {0, 20, 80}, 20),
+        %sim:turnover_player_raise({?TOMMY, Players}, {20, 20, 60}, 0),
 
-        sim:check_notify_stage_end(?GS_FLOP, Players),
-        ?assertMatch(stop, game:state(?GAME))
-    end}.
+        %sim:check_notify_stage_end(?GS_FLOP, Players),
+        %?assertMatch(stop, game:state(?GAME))
+    %end}.
 
-headsup_betting_and_fold_test_() -> {setup, fun setup_normal/0, fun cleanup/1, fun () ->
-        SB = 1, BB = 2,
-        Players = set_sn([{?JACK, SB}, {?TOMMY, BB}], ?TWO_PLAYERS),
+%headsup_betting_and_fold_test_() -> {setup, fun setup_normal/0, fun sim:clean/1, fun () ->
+        %SB = 1, BB = 2,
+        %Players = set_sn([{?JACK, SB}, {?TOMMY, BB}], ?TWO_PLAYERS),
 
-        sim:join_and_start_game(Players),
-        sim:check_blind(Players, SB, SB, BB),
+        %sim:join_and_start_game(Players),
+        %sim:check_blind(Players, SB, SB, BB),
 
-        sim:turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
-        sim:turnover_player_fold({?TOMMY, Players},  { 0, 20, 80}),
+        %sim:turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
+        %sim:turnover_player_fold({?TOMMY, Players},  { 0, 20, 80}),
 
-        ?assertMatch(#texas{joined = 2}, game:ctx(?GAME)),
-        ?assertMatch(stop, game:state(?GAME))
-    end}.
+        %?assertMatch(#texas{joined = 2}, game:ctx(?GAME)),
+        %?assertMatch(stop, game:state(?GAME))
+    %end}.
 
-headsup_betting_and_leave_test_() -> {setup, fun setup_normal/0, fun cleanup/1, fun () ->
-        SB = 1, BB = 2,
-        Players = set_sn([{?JACK, SB}, {?TOMMY, BB}], ?TWO_PLAYERS),
+%headsup_betting_and_leave_test_() -> {setup, fun setup_normal/0, fun sim:clean/1, fun () ->
+        %SB = 1, BB = 2,
+        %Players = set_sn([{?JACK, SB}, {?TOMMY, BB}], ?TWO_PLAYERS),
 
-        sim:join_and_start_game(Players),
-        sim:check_blind(Players, SB, SB, BB),
+        %sim:join_and_start_game(Players),
+        %sim:check_blind(Players, SB, SB, BB),
 
-        sim:turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
-        sim:turnover_player_leave({?TOMMY, Players}, { 0, 20, 80}),
+        %sim:turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
+        %sim:turnover_player_leave({?TOMMY, Players}, { 0, 20, 80}),
 
 
-        ?assertMatch(#texas{joined = 1}, game:ctx(?GAME)),
-        ?assertMatch(stop, game:state(?GAME))
-    end}.
+        %?assertMatch(#texas{joined = 1}, game:ctx(?GAME)),
+        %?assertMatch(stop, game:state(?GAME))
+    %end}.
 
 setup_normal() ->
   setup([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}]).
 
 setup(MixinMods) ->
-  schema_test:init(),
-  error_logger:info_report({sim_client, check}),
-  sim_client:setup_players(?PLAYERS),
-  error_logger:info_report({sim_client, endcheck}),
-
-  Mods = [{wait_players, []}] ++ MixinMods ++ [{stop, []}],
-  Limit = #limit{min = 100, max = 400, small = 10, big = 20},
-  Conf = #tab_game_config{module = game, mods = Mods, limit = Limit, seat_count = 9, start_delay = 500, required = 2, timeout = 1000, max = 1},
-  error_logger:info_report({game, check}),
-  P = game:start(Conf),
-  error_logger:info_report({game, endcheck}),
-  P.
-
-cleanup(Games) ->
-  lists:foreach(fun ({ok, Pid}) -> exch:stop(Pid) end, Games),
-  lists:foreach(fun ({Key, _R}) -> sim_client:stop(Key) end, ?PLAYERS).
+  sim:setup(),
+  game:start(#tab_game_config{
+    module = game, seat_count = 9, required = 2, 
+    limit = #limit{min = 100, max = 400, small = 10, big = 20}, 
+    mods = [{poker_mod_suspend, []}, {wait_players, []}] ++ MixinMods ++ [{stop, []}], 
+    start_delay = 0, timeout = 1000, max = 1}).
 
 %%%
 %%% private test until

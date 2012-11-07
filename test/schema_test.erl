@@ -12,8 +12,10 @@ init_test() ->
   mnesia:dirty_write(#tab_inplay{pid = 1, inplay = 500}).
 
 init() ->
-  ?assertEqual(stopped, mnesia:stop()),
+  error_logger:tty(false),
+  application:stop(mnesia),
   ?assertEqual(ok, mnesia:delete_schema([node()])),
   ?assertEqual(ok, mnesia:create_schema([node()])),
-  ?assertEqual(ok, mnesia:start()),
-  ?assertEqual(ok, schema:rebuild_core()).
+  ?assertEqual(ok, application:start(mnesia)),
+  ?assertEqual(ok, schema:rebuild_core()),
+  error_logger:tty(true).

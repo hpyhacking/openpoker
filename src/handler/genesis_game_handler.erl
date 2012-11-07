@@ -37,6 +37,7 @@ handle_message({timeout, _, ?MODULE}, _LoopData) ->
 handle_data(Code, LoopData) when is_binary(Code) ->
   case catch protocol:read(base64:decode(Code)) of
     {'EXIT', {_Reason, _Stack}} ->
+      error_logger:error_report({protocol, read, Code}),
       send(#notify_error{error = ?ERR_DATA}),
       webtekcos:close(),
       LoopData;
@@ -101,7 +102,7 @@ send(R) -> send(self(), R).
 send(PID, R) ->
   case catch protocol:write(R) of
     {'EXIT', Raise} ->
-      error_logger:error_report(Raise);
+      error_logger:error_report({protocol, write, R, Raise});
     Data ->
       webtekcos:send_data(PID, base64:encode(list_to_binary(Data)))
   end.

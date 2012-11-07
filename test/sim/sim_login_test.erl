@@ -9,7 +9,7 @@ connection_timeout_test() ->
   ?assertNot(is_pid(whereis(?MODULE))),
   ?assertMatch([#notify_error{error = ?ERR_CONNECTION_TIMEOUT}], sim_client:box()).
 
-login_error_test_() -> {setup, fun setup/0, [
+login_error_test_() -> {setup, fun sim:setup/0, fun sim:clean/1, [
       fun () ->
           sim_client:start(?MODULE),
           ?assert(is_pid(whereis(?MODULE))),
@@ -41,7 +41,9 @@ login_error_test_() -> {setup, fun setup/0, [
           ?assertMatch([#notify_error{error = ?ERR_PLAYER_DISABLE}], sim_client:box())
       end]}.
 
-login_successful_test() ->
+login_successful_test() -> {setup, fun sim:setup/0, fun sim:clean/1, [
+      fun () ->
+
   sim_client:start(?JACK),
   ?assert(is_pid(whereis(?JACK))),
   Jack = sim_client:player(?JACK, ?PLAYERS),
@@ -50,7 +52,5 @@ login_successful_test() ->
   ?assert(is_pid(?LOOKUP_PLAYER(Jack#tab_player_info.pid))),
   ?assertMatch(#notify_player{}, sim_client:head(?JACK)),
   ?assertMatch(#notify_acount{}, sim_client:head(?JACK)),
-  sim_client:stop(?JACK).
-
-setup() ->
-  schema_test:init().
+  sim_client:stop(?JACK)
+end]}.
