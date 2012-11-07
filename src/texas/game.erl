@@ -180,14 +180,10 @@ start_conf(Conf = #tab_game_config{}, N, L) ->
   start_conf(Conf#tab_game_config{mods = default_mods()}, N, L).
 
 config() ->
-  Fun = fun(R = #tab_game_config{max = Max}, Acc) -> config(R, Acc, Max) end, 
+  Fun = fun(R, Acc) -> [R] ++ Acc end, 
   ok = mnesia:wait_for_tables([tab_game_config], ?WAIT_TABLE),
   {atomic, NewAcc} = mnesia:transaction(fun() -> mnesia:foldl(Fun, [], tab_game_config) end),
   lists:reverse(NewAcc).
-
-config(#tab_game_config{}, Acc, 0) -> Acc;
-config(R = #tab_game_config{module = M, mods = Ms}, Acc, N) -> 
-  config(R, Acc ++ [{M, R, Ms}], N - 1).
 
 %% check
 bet({R = #seat{}, Amt}, Ctx = #texas{}) ->

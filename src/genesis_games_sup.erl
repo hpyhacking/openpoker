@@ -2,13 +2,12 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0]).
+-export([start_link/0, start_child/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
 
-%% Helper macro for declaring children of supervisor
--define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
+-include("genesis.hrl").
 
 %% ===================================================================
 %% API functions
@@ -22,8 +21,19 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-  %% read mnesia game config to generate process define
-  Fun = fun({Module, Conf, Mods}) ->
-      {make_ref(), {exch, start_link, [Module, Conf, Mods]}, permanent, 2000, worker, []}
-  end,
-  {ok, {{one_for_one, 5, 10}, lists:map(Fun, game:config())}}.
+  Fun = fun(R, Acc) -> gen(R, []) ++ Acc end, 
+  ok = mnesia:wait_for_tables([tab_game_config], ?WAIT_TABLE),
+  {atomic, NewAcc} = mnesia:transaction(fun() ->
+    mnesia:foldl(Fun, [], tab_game_config)
+  end),
+  {ok, {{one_for_one, 5, 10}, lists:reverse(NewAcc)}}.
+
+start_child(Conf = #tab_game_config{}) ->
+  Fun = fun(Game) -> supervisor:start_child(?MODULE, Game) end,
+  lists:map(Fun, gen(Conf, [])).
+
+gen(#tab_game_config{max = 0}, Acc) -> Acc;
+gen(Conf = #tab_game_config{module = Module, mods = Mods, max = N}, Acc) ->
+  StartMod = {exch, start_link, [Module, Conf, Mods]},
+  NewAcc = [{make_ref(), StartMod, permanent, 2000, worker, []}] ++ Acc,
+  gen(Conf#tab_game_config{max = N - 1}, NewAcc).

@@ -6,7 +6,6 @@
 
 join_and_start_game(Players) ->
   join_and_start_game(Players, 1),
-  ?SLEEP,
   clean_box(Players),
   go_go_go(),
   ?SLEEP,
@@ -184,6 +183,10 @@ setup() ->
 
 setup_players(L) when is_list(L) ->
   lists:map(fun ({Key, R}) ->
+        case whereis(Key) of
+          undefined -> ok;
+          P -> exit(P, kill), ?SLEEP
+        end,
         ?assertNot(is_pid(whereis(Key))),
         Identity = list_to_binary(R#tab_player_info.identity),
         mnesia:dirty_write(R),
@@ -201,9 +204,16 @@ clean(_) ->
 go_go_go() ->
   gen_server:cast(?GAME_NAME, go_go_go).
 
-game_state() ->
-  {status, _Proc, _Mod, SItem} = sys:get_status(?GAME_NAME),
+get_status(Name) ->
+  {status, _Proc, _Mod, SItem} = sys:get_status(Name),
   [_PDict, _SysStaqte, _Parent, _Dbg, Misc] = SItem,
   [_H|[[{"State", State}]|[]]] = proplists:get_all_values(data, Misc),
+  State.
+
+game_state() ->
+  State = get_status(?GAME_NAME),
   State#exch.state.
 
+game_ctx() ->
+  State = get_status(?GAME_NAME),
+  State#exch.ctx.
