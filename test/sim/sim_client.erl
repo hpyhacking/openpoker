@@ -26,9 +26,10 @@
 %%%
 
 start(Key, Timeout) ->
-  undefined = whereis(Key),
-  PID = spawn(?MODULE, loop, [genesis_game, ?UNDEF, #pdata{host = self(), timeout = Timeout}]),
-  true = register(Key, PID),
+  ?assert(undefined =:= whereis(Key)),
+  PD = #pdata{host = self(), timeout = Timeout},
+  PID = spawn(?MODULE, loop, [genesis_game_handler, ?UNDEF, PD]),
+  ?assert(true =:= register(Key, PID)),
   PID.
 
 start(Key) when is_atom(Key) ->
@@ -52,11 +53,16 @@ send(Id, R) ->
   ?SLEEP.
 
 head(Id) ->
-  Id ! {sim, head, self()},
-  receive 
-    R when is_tuple(R) -> R
-  after
-    500 -> exit(request_timeout)
+  case whereis(Id) of
+    ?UNDEF ->
+      error_logger:error_report("sim_client:head/1 to undefined process");
+    Pid ->
+      Pid ! {sim, head, self()},
+      receive 
+        R when is_tuple(R) -> R
+      after
+        500 -> exit(request_timeout)
+      end
   end.
 
 box() ->
@@ -80,8 +86,11 @@ setup_players(L) when is_list(L) ->
         ?assertNot(is_pid(whereis(Key))),
         Identity = list_to_binary(R#tab_player_info.identity),
         mnesia:dirty_write(R),
-        sim_client:start(Key),
+        P = sim_client:start(Key),
         sim_client:send(Key, #cmd_login{identity = Identity, password = <<?DEF_PWD>>}),
+        error_logger:info_report({sim_client_match, Key}),
+        A = sim_client:head(Key),
+        error_logger:info_report({sim_client_match_end, Key}),
         ?assertMatch(#notify_player{}, sim_client:head(Key)),
         ?assertMatch(#notify_acount{}, sim_client:head(Key)),
         {Key, R}
@@ -116,7 +125,6 @@ loop(Mod, LoopData, Data = #pdata{box = Box}) ->
       loop(Mod, LoopData, Data#pdata{box = []});
     {sim, kill} ->
       exit(kill);
-
     close ->
       Data#pdata.host ! Box,
       exit(normal);
@@ -127,42 +135,3 @@ loop(Mod, LoopData, Data = #pdata{box = Box}) ->
       NewLoopData = Mod:handle_message(Message, LoopData),
       loop(Mod, NewLoopData, Data)
   end.
-
-%start_robot(Key) ->
-  %undefined = whereis(Key),
-  %PID = spawn(?MODULE, robot_loop, [fun client:loop/2, Key]),
-  %true = register(Key, PID),
-  %PID.
-
-%robot_loop(Fun, Id) ->
-  %LoopData = Fun({connected, 0}, ?UNDEF),
-  %robot_loop(Fun, LoopData, #robot_data{id = Id}).
-
-%robot_loop(Fun, LoopData, Data = #robot_data{id = Id}) ->
-  %receive
-    %{send, Bin} when is_binary(Bin) ->
-      %case protocol:read(Bin) of
-        %#notify_game_start{game = Game} ->
-          %robot_loop(Fun, LoopData, Data#robot_data{game = Game});
-        %R = #notify_betting{call = Call, min = Min} ->
-          %io:format("BETTING ~p:~p ~p~n", [Id, element(1,R), R]),
-          %timer:sleep(100),
-          %case Call of
-            %0 ->
-              %send(Id, #cmd_raise{game = Data#robot_data.game, amount = Min});
-            %Call ->
-              %send(Id, #cmd_raise{game = Data#robot_data.game, amount = 0})
-          %end,
-          %robot_loop(Fun, LoopData, Data);
-        %R ->
-          %io:format("PROTOCOL ~p:~p ~p~n", [Id, element(1,R), R]),
-          %robot_loop(Fun, LoopData, Data)
-      %end;
-    %{send, R} when is_tuple(R) ->
-      %NewLoopData = Fun({recv, list_to_binary(protocol:write(R))}, LoopData),
-      %robot_loop(Fun, NewLoopData, Data);
-    %_ ->
-      %ok
-  %end.
-
-%-record(robot_data, { id, game }).

@@ -178,12 +178,17 @@ setup_normal() ->
 
 setup(MixinMods) ->
   schema_test:init(),
+  error_logger:info_report({sim_client, check}),
   sim_client:setup_players(?PLAYERS),
+  error_logger:info_report({sim_client, endcheck}),
 
   Mods = [{wait_players, []}] ++ MixinMods ++ [{stop, []}],
   Limit = #limit{min = 100, max = 400, small = 10, big = 20},
   Conf = #tab_game_config{module = game, mods = Mods, limit = Limit, seat_count = 9, start_delay = 500, required = 2, timeout = 1000, max = 1},
-  game:start(Conf).
+  error_logger:info_report({game, check}),
+  P = game:start(Conf),
+  error_logger:info_report({game, endcheck}),
+  P.
 
 cleanup(Games) ->
   lists:foreach(fun ({ok, Pid}) -> exch:stop(Pid) end, Games),

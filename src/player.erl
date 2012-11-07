@@ -12,7 +12,7 @@
 
 -include("genesis.hrl").
 
--record(pdata, {
+-record(pd, { %% process data
     pid,
     self,
     identity = ?UNDEF,
@@ -29,48 +29,48 @@
 init([R = #tab_player_info{pid = PId, identity = Identity, nick = Nick, photo = Photo}]) ->
   process_flag(trap_exit, true),
   ok = create_runtime(PId, self()),
-  {ok, #pdata{pid = PId, self = self(), nick = list_to_binary(Nick), photo = list_to_binary(Photo), identity = Identity, record = R}}.
+  {ok, #pd{pid = PId, self = self(), nick = list_to_binary(Nick), photo = list_to_binary(Photo), identity = Identity, record = R}}.
 
-handle_cast(R = #cmd_watch{game = G}, Data = #pdata{})
-when Data#pdata.watching =:= ?UNDEF ->
-  game:watch(G, R#cmd_watch{pid = Data#pdata.pid, identity = Data#pdata.identity}),
+handle_cast(R = #cmd_watch{game = G}, Data = #pd{})
+when Data#pd.watching =:= ?UNDEF ->
+  game:watch(G, R#cmd_watch{pid = Data#pd.pid, identity = Data#pd.identity}),
   {noreply, Data};
 
-handle_cast(R = #cmd_unwatch{game = G}, Data = #pdata{})
-when Data#pdata.watching /= ?UNDEF ->
-  game:unwatch(G, R#cmd_unwatch{pid = Data#pdata.pid, identity = Data#pdata.identity}),
+handle_cast(R = #cmd_unwatch{game = G}, Data = #pd{})
+when Data#pd.watching /= ?UNDEF ->
+  game:unwatch(G, R#cmd_unwatch{pid = Data#pd.pid, identity = Data#pd.identity}),
   {noreply, Data};
 
-handle_cast(#cmd_join{game = G, buyin = B}, Data = #pdata{watching = W, playing = P, record = R}) when is_pid(G), W =:= G, P =:= ?UNDEF, (R#tab_player_info.cash + R#tab_player_info.credit) < B  ->
+handle_cast(#cmd_join{game = G, buyin = B}, Data = #pd{watching = W, playing = P, record = R}) when is_pid(G), W =:= G, P =:= ?UNDEF, (R#tab_player_info.cash + R#tab_player_info.credit) < B  ->
   notify(#notify_error{error = ?ERR_JOIN_LESS_BALANCE}),
   {noreply, Data};
 
-handle_cast(R = #cmd_join{game = G}, Data = #pdata{watching = W, playing = P}) when is_pid(G), W =:= G, P =:= ?UNDEF ->
-  game:join(G, R#cmd_join{pid = Data#pdata.pid, identity = Data#pdata.identity, nick = Data#pdata.nick, photo = Data#pdata.photo}),
+handle_cast(R = #cmd_join{game = G}, Data = #pd{watching = W, playing = P}) when is_pid(G), W =:= G, P =:= ?UNDEF ->
+  game:join(G, R#cmd_join{pid = Data#pd.pid, identity = Data#pd.identity, nick = Data#pd.nick, photo = Data#pd.photo}),
   {noreply, Data};
 
-handle_cast(R = #cmd_join{game = G}, Data = #pdata{identity = Identity, watching = W, playing = P}) when is_pid(G), W =:= ?UNDEF, P =:= ?UNDEF ->
+handle_cast(R = #cmd_join{game = G}, Data = #pd{identity = Identity, watching = W, playing = P}) when is_pid(G), W =:= ?UNDEF, P =:= ?UNDEF ->
   game:watch(G, Identity),
-  handle_cast(R, Data#pdata{watching = G});
+  handle_cast(R, Data#pd{watching = G});
 
-handle_cast(R = #cmd_join{}, Data = #pdata{}) ->
-  ?LOG([{player, {error, join}}, {join, R}, {pdata, Data}]),
+handle_cast(R = #cmd_join{}, Data = #pd{}) ->
+  ?LOG([{player, {error, join}}, {join, R}, {pd, Data}]),
   {noreply, Data};
 
 %% player leave game
-handle_cast(R = #cmd_leave{game = G}, Data = #pdata{playing = P, playing_sn = SN}) when G =:= P, SN /= 0 ->
-  game:leave(G, R#cmd_leave{pid = Data#pdata.pid, sn = SN}),
+handle_cast(R = #cmd_leave{game = G}, Data = #pd{playing = P, playing_sn = SN}) when G =:= P, SN /= 0 ->
+  game:leave(G, R#cmd_leave{pid = Data#pd.pid, sn = SN}),
   {noreply, Data};
 
 handle_cast(#cmd_leave{}, Data) ->
   {noreply, Data};
 
 %% player info query
-handle_cast(#cmd_query_player{}, Data = #pdata{}) ->
+handle_cast(#cmd_query_player{}, Data = #pd{}) ->
   R = #notify_player{
-    player = Data#pdata.pid,
-    nick = Data#pdata.nick,
-    photo = Data#pdata.photo
+    player = Data#pd.pid,
+    nick = Data#pd.nick,
+    photo = Data#pd.photo
   },
   handle_cast({notify, R}, Data);
 
@@ -82,25 +82,25 @@ handle_cast(#cmd_query_seats{game = Game}, Data) ->
   game:query_seats(Game),
   {noreply, Data};
 
-handle_cast({notify, R = #notify_watch{proc = G, player = P}}, Data = #pdata{pid = PId})
+handle_cast({notify, R = #notify_watch{proc = G, player = P}}, Data = #pd{pid = PId})
 when P =:= PId ->
   forward_to_client(R, Data),
-  {noreply, Data#pdata{ watching = G }};
+  {noreply, Data#pd{ watching = G }};
 
-handle_cast({notify, R = #notify_unwatch{proc = G, player = P}}, Data = #pdata{pid = PId})
+handle_cast({notify, R = #notify_unwatch{player = P}}, Data = #pd{pid = PId})
 when P =:= PId ->
   forward_to_client(R, Data),
-  {noreply, Data#pdata{ watching = ?UNDEF }};
+  {noreply, Data#pd{ watching = ?UNDEF }};
 
-handle_cast({notify, R = #notify_join{proc = G, player = P}}, Data = #pdata{pid = PId}) when P =:= PId ->
+handle_cast({notify, R = #notify_join{proc = G, player = P}}, Data = #pd{pid = PId}) when P =:= PId ->
   Info = reload_player_info(PId),
   forward_to_client(R, Data),
-  {noreply, Data#pdata{ playing = G, playing_sn = R#notify_join.sn, record = Info }};
+  {noreply, Data#pd{ playing = G, playing_sn = R#notify_join.sn, record = Info }};
 
-handle_cast({notify, R = #notify_leave{player = P}}, Data = #pdata{pid = PId}) when P =:= PId ->
+handle_cast({notify, R = #notify_leave{player = P}}, Data = #pd{pid = PId}) when P =:= PId ->
   Info = reload_player_info(PId),
   forward_to_client(R, Data),
-  {noreply, Data#pdata{ playing = ?UNDEF, playing_sn = 0, record = Info }};
+  {noreply, Data#pd{ playing = ?UNDEF, playing_sn = 0, record = Info }};
 
 handle_cast({notify, R}, Data) ->
   forward_to_client(R, Data),
@@ -112,19 +112,19 @@ handle_cast(stop, Data) ->
 handle_cast({stop, Reason}, Data) ->
   {stop, Reason, Data};
 
-handle_cast(R = #cmd_raise{game = G}, Data = #pdata{playing = P}) when G =:= P ->
-  game:raise(G, R#cmd_raise{sn = Data#pdata.playing_sn, pid = Data#pdata.pid}),
+handle_cast(R = #cmd_raise{game = G}, Data = #pd{playing = P}) when G =:= P ->
+  game:raise(G, R#cmd_raise{sn = Data#pd.playing_sn, pid = Data#pd.pid}),
   {noreply, Data};
 
-handle_cast(R = #cmd_fold{game = G}, Data = #pdata{playing = P}) when G =:= P ->
-  game:fold(G, R#cmd_fold{pid = Data#pdata.pid}),
+handle_cast(R = #cmd_fold{game = G}, Data = #pd{playing = P}) when G =:= P ->
+  game:fold(G, R#cmd_fold{pid = Data#pd.pid}),
   {noreply, Data};
 
-handle_cast(logout, Data = #pdata{playing = ?UNDEF}) ->
+handle_cast(logout, Data = #pd{playing = ?UNDEF}) ->
   error_logger:info_report({player_loggout, nothing_join_game}),
   {noreply, Data};
 
-handle_cast(logout, Data = #pdata{playing = Game}) ->
+handle_cast(logout, Data = #pd{playing = Game}) ->
   error_logger:info_report({player_loggout, join_game, Game}),
   {noreply, handle_cast(#cmd_leave{game = Game}, Data)};
   
@@ -135,24 +135,24 @@ handle_cast(R, Data) ->
 handle_call(ctx, _From, Data) ->
   {reply, Data, Data};
 
-handle_call(info, _From, Data = #pdata{record = R}) ->
+handle_call(info, _From, Data = #pd{record = R}) ->
   {reply, R, Data};
 
 handle_call({client, Client}, _From, Data) when is_pid(Client) ->
-  {reply, Client, Data#pdata{ client = Client}};
+  {reply, Client, Data#pd{ client = Client}};
 
 handle_call(kill, _From, Data) ->
   {stop, normal, ok, Data};
 
 handle_call(plist, _From, Data) ->
-  {reply, [{nick, Data#pdata.nick}, {photo, Data#pdata.photo}, {pid, Data#pdata.pid}, {proc, Data#pdata.self}], Data};
+  {reply, [{nick, Data#pd.nick}, {photo, Data#pd.photo}, {pid, Data#pd.pid}, {proc, Data#pd.self}], Data};
 
 handle_call(R, From, Data) ->
   error_logger:info_report([{module, ?MODULE}, {process, self()}, {unknown_call, R}, {from, From}]),
   {noreply, Data}.
 
 terminate(_Reason, Data) ->
-  ok = mnesia:dirty_delete(tab_player, Data#pdata.pid).
+  ok = mnesia:dirty_delete(tab_player, Data#pd.pid).
 
 handle_info({'EXIT', _Pid, _Reason}, Data) ->
     %% child exit?
@@ -246,7 +246,7 @@ reload_player_info(PId) ->
 create_runtime(PID, Process) when is_number(PID), is_pid(Process) ->
   mnesia:dirty_write(#tab_player{ pid = PID, process = Process }).
 
-forward_to_client(_, #pdata{client = Client}) when Client =:= ?UNDEF -> 
+forward_to_client(_, #pd{client = Client}) when Client =:= ?UNDEF -> 
   exit(undefined_client);
-forward_to_client(R, #pdata{client = Client}) -> 
+forward_to_client(R, #pd{client = Client}) -> 
   genesis_game_handler:send(Client, R).

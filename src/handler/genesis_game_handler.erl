@@ -34,15 +34,18 @@ handle_message({timeout, _, ?MODULE}, _LoopData) ->
   send(#notify_error{error = ?ERR_CONNECTION_TIMEOUT}),
   webtekcos:close().
 
-handle_data(Code, LoopData) when is_list(Code) ->
-  case catch protocol:read(base64:decode(list_to_binary(Code))) of
+handle_data(Code, LoopData) when is_binary(Code) ->
+  case catch protocol:read(base64:decode(Code)) of
     {'EXIT', {_Reason, _Stack}} ->
       send(#notify_error{error = ?ERR_DATA}),
       webtekcos:close(),
       LoopData;
     R ->
       handle_protocol(R, LoopData)
-  end.
+  end;
+
+handle_data(Code, LoopData) when is_list(Code) ->
+  handle_data(list_to_binary(Code), LoopData).
 
 %%%%
 %%%% handle internal protocol
