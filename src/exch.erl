@@ -8,16 +8,6 @@
 
 -include("genesis.hrl").
 
--record(exch, {
-    id,
-    module,
-    state,
-    mods,
-    stack,
-    ctx,
-    conf
-  }).
-
 behaviour_info(callbacks) -> [
     {id, 0}, 
     {init, 2}, 

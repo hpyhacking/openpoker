@@ -14,3 +14,13 @@
 
 -define(DEF_PWD, "def_pwd").
 -define(DEF_HASH_PWD, erlang:phash2(?DEF_PWD, 1 bsl 32)).
+
+-record(exch, {
+    id,
+    module,
+    state,
+    mods,
+    stack,
+    ctx,
+    conf
+  }).

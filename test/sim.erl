@@ -9,6 +9,8 @@ join_and_start_game(Players) ->
   clean_box(Players),
   go_go_go(),
   ?SLEEP,
+  ?SLEEP,
+  ?SLEEP,
   check_notify_start(Players).
 
 join_and_start_game([], _SN) -> ok;
@@ -182,9 +184,18 @@ turnover_player_leave({Actor, Players}, {Call, Min, Max}) ->
 setup() ->
   error_logger:tty(false),
   application:start(sasl),
-  schema_test:init(),
+  setup_schema(),
   ?assert(ok =:= application:start(genesis)),
   setup_players(?PLAYERS),
+  error_logger:tty(true).
+
+setup_schema() ->
+  error_logger:tty(false),
+  application:stop(mnesia),
+  ?assertEqual(ok, mnesia:delete_schema([node()])),
+  ?assertEqual(ok, mnesia:create_schema([node()])),
+  ?assertEqual(ok, application:start(mnesia)),
+  ?assertEqual(ok, schema:rebuild_core()),
   error_logger:tty(true).
 
 setup_players(L) when is_list(L) ->
@@ -208,18 +219,24 @@ clean(_) ->
   ?assert(ok =:= application:stop(genesis)).
 
 go_go_go() ->
-  gen_server:cast(?GAME_NAME, go_go_go).
+  gen_server:cast(?GAME_NAME(?GAME), go_go_go).
 
 get_status(Name) ->
-  {status, _Proc, _Mod, SItem} = sys:get_status(Name),
-  [_PDict, _SysStaqte, _Parent, _Dbg, Misc] = SItem,
-  [_H|[[{"State", State}]|[]]] = proplists:get_all_values(data, Misc),
-  State.
+  genesis_common:get_status(Name).
 
-game_state() ->
-  State = get_status(?GAME_NAME),
+game_state(GID) ->
+  State = get_status(?GAME_NAME(GID)),
   State#exch.state.
 
+game_state() ->
+  game_state(?GAME).
+
 game_ctx() ->
-  State = get_status(?GAME_NAME),
+  State = get_status(?GAME_NAME(?GAME)),
   State#exch.ctx.
+
+player_state(PID) ->
+  get_status(?PLAYER(PID)).
+
+setup_game(Conf) ->
+  genesis_games_sup:start_child(Conf).

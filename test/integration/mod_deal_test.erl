@@ -1,13 +1,12 @@
--module(sim_deal_test).
+-module(mod_deal_test).
 -include("genesis.hrl").
 -include("genesis_test.hrl").
 
 -define(TWO_PLAYERS, [{?JACK, ?JACK_ID}, {?TOMMY, ?TOMMY_ID}]).
 
-private_rank_test_() -> {setup, fun setup_with_private_rank/0, fun cleanup/1, fun () ->
+private_rank_test_() -> {setup, fun setup_with_private_rank/0, fun sim:clean/1, fun () ->
         Players = ?TWO_PLAYERS,
         sim:join_and_start_game(Players),
-
         sim:check_blind_only_raise(Players, 1, 1, 2),
         sim:check_deal(),
 
@@ -15,7 +14,7 @@ private_rank_test_() -> {setup, fun setup_with_private_rank/0, fun cleanup/1, fu
         ?assertMatch(#notify_hand{rank = ?HC_PAIR, high1 = ?CF_THREE}, sim_client:head(?TOMMY))
     end}.
 
-deal_test_() -> {setup, fun setup_with_deal/0, fun cleanup/1, fun () ->
+deal_test_() -> {setup, fun setup_with_deal/0, fun sim:clean/1, fun () ->
         Players = ?TWO_PLAYERS,
         sim:join_and_start_game(Players),
 
@@ -23,17 +22,17 @@ deal_test_() -> {setup, fun setup_with_deal/0, fun cleanup/1, fun () ->
         sim:check_deal(),
         sim:check_shared(3, Players),
 
-        Ctx = game:ctx(?GAME),
+        Ctx = sim:game_ctx(),
         Jack = seat:get(1, Ctx#texas.seats),
         Tommy = seat:get(2, Ctx#texas.seats),
         ?assertEqual(52 - 4 - 3, deck:size(Ctx#texas.deck)),
         ?assertEqual(3, length(Ctx#texas.board)),
         ?assertEqual(2, hand:size(Jack#seat.hand)),
         ?assertEqual(2, hand:size(Tommy#seat.hand)),
-        ?assertMatch(stop, game:state(?GAME))
+        ?assertMatch(stop, sim:game_state())
     end}.
 
-share_rank_test_() -> {setup, fun setup_with_share_rank/0, fun cleanup/1, fun () ->
+share_rank_test_() -> {setup, fun setup_with_share_rank/0, fun sim:clean/1, fun () ->
         Players = ?TWO_PLAYERS,
         sim:join_and_start_game(Players),
         sim:check_blind_only_raise(Players, 1, 1, 2),
@@ -43,7 +42,7 @@ share_rank_test_() -> {setup, fun setup_with_share_rank/0, fun cleanup/1, fun ()
         ?assertMatch(#notify_hand{rank = ?HC_THREE_KIND, high1 = ?CF_THREE}, sim_client:head(?TOMMY))
     end}.
 
-share_rank2_test_() -> {setup, fun setup_with_share_rank2/0, fun cleanup/1, fun () ->
+share_rank2_test_() -> {setup, fun setup_with_share_rank2/0, fun sim:clean/1, fun () ->
         Players = ?TWO_PLAYERS,
         sim:join_and_start_game(Players),
         sim:check_blind_only_raise(Players, 1, 1, 2),
@@ -76,13 +75,10 @@ setup_with_private_rank() ->
   setup(MixinMods).
 
 setup(MixinMods) ->
-  schema_test:init(),
-  sim_client:setup_players(?PLAYERS),
-  Mods = [{wait_players, []}] ++ MixinMods ++ [{stop, []}],
-  Limit = #limit{min = 100, max = 400, small = 10, big = 20},
-  Conf = #tab_game_config{module = game, mods = Mods, limit = Limit, seat_count = 9, start_delay = 500, required = 2, timeout = 1000, max = 1},
-  game:start(Conf).
-
-cleanup(Games) ->
-  lists:foreach(fun ({ok, Pid}) -> exch:stop(Pid) end, Games),
-  lists:foreach(fun ({Key, _R}) -> sim_client:stop(Key) end, ?PLAYERS).
+  sim:setup(),
+  sim:setup_game(
+    #tab_game_config{
+      module = game, required = 2, seat_count = 9, 
+      limit = #limit{min = 100, max = 400, small = 10, big = 20},
+      mods = [{poker_mod_suspend, []}, {wait_players, []}] ++ MixinMods ++ [{stop, []}],
+      start_delay = 500, timeout = 1000, max = 1}).

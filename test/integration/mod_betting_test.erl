@@ -1,4 +1,4 @@
--module(sim_betting_test).
+-module(mod_betting_test).
 
 -include("genesis.hrl").
 -include("genesis_test.hrl").
@@ -177,7 +177,7 @@ setup_normal() ->
 
 setup(MixinMods) ->
   sim:setup(),
-  genesis_games_sup:start_child(
+  sim:setup_game(
     #tab_game_config{
       module = game, seat_count = 9, required = 2,
       limit = #limit{min = 100, max = 400, small = 10, big = 20},

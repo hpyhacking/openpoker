@@ -5,7 +5,7 @@
 -export([start/0, start/1, start_conf/2, config/0]).
 -export([watch/2, unwatch/2, join/2, leave/2, bet/2]).
 -export([reward/3, query_seats/1, list/0, raise/2, fold/2]).
--export([broadcast/2, broadcast/3]).
+-export([broadcast/2, broadcast/3, info/1]).
 
 -include("genesis.hrl").
 
@@ -186,6 +186,7 @@ config() ->
   lists:reverse(NewAcc).
 
 %% check
+
 bet({R = #seat{}, Amt}, Ctx = #texas{}) ->
   bet({R, Amt, 0}, Ctx);
 
@@ -252,18 +253,6 @@ broadcast(Msg, [{_, Process}|T]) ->
   player:notify(Process, Msg),
   broadcast(Msg, T).
 
-info(GId) when is_integer(GId) ->
-  gen_server:call(?LOOKUP_GAME(GId), info);
-info(Game) when is_pid(Game) ->
-  gen_server:call(Game, info).
-
-list() ->
-  Fun = fun(#tab_game_xref{process = Game}, Acc) ->
-      Acc ++ [info(Game)]
-  end,
-  {atomic, Result} = mnesia:transaction(fun() -> mnesia:foldl(Fun, [], tab_game_xref) end),
-  Result.
-
 watch(Game, R = #cmd_watch{}) when is_pid(Game) ->
   gen_server:cast(Game, R#cmd_watch{proc = self()}).
 
@@ -285,9 +274,31 @@ fold(Game, R = #cmd_fold{}) when is_pid(Game) ->
 query_seats(Game) when is_pid(Game) ->
   gen_server:cast(Game, {query_seats, self()}).
 
+list() ->
+  Fun = fun(#tab_game_xref{process = Game}, Acc) ->
+      Acc ++ [info(Game)]
+  end,
+  {atomic, Result} = mnesia:transaction(fun() -> mnesia:foldl(Fun, [], tab_game_xref) end),
+  Result.
+
+info(Game) ->
+  State = genesis_common:get_status(Game),
+  get_notify_game(State#exch.ctx).
+
 %%%
 %%% private
 %%%
+
+get_notify_game(#texas{gid = GId, joined = Joined, required = Required, seats = Seats, limit = Limit}) ->
+  #notify_game{
+    game = GId,
+    name = <<"TEXAS_TABLE">>,
+    limit = Limit,
+    seats = seat:info(size, Seats),
+    require = Required,
+    joined = Joined
+  }.
+
 
 create_runtime(GID, R) ->
   mnesia:dirty_write(#tab_game_xref {
