@@ -185,7 +185,7 @@ setup() ->
   error_logger:tty(false),
   application:start(sasl),
   setup_schema(),
-  ?assert(ok =:= application:start(genesis)),
+  ?assertMatch(ok, application:start(genesis)),
   setup_players(?PLAYERS),
   error_logger:tty(true).
 

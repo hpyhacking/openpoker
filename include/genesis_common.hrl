@@ -1,6 +1,7 @@
 -define(UNDEF, undefined).
 -define(WAIT_TABLE, 10 * 1000).
 -define(CONNECT_TIMEOUT, 2000).
+-define(SLEEP(T), timer:sleep(T * 1000)).
 -define(SLEEP, timer:sleep(200)).
 
 %%% Error codes

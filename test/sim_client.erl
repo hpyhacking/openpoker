@@ -36,17 +36,7 @@ start(Key) when is_atom(Key) ->
   start(Key, 60 * 1000).
 
 stop(Id) when is_pid(Id) ->
-  catch Id ! {sim, kill},
-  ?SLEEP;
-
-stop(PId) when is_atom(PId) ->
-  stop(whereis(PId)),
-  case player(PId, ?PLAYERS) of
-    undefined ->
-      ok;
-    Player ->
-      player:stop(Player#tab_player_info.pid)
-  end.
+  exit(Id, kill).
 
 send(Id, R) ->
   Id ! {sim, send, R},
@@ -68,8 +58,6 @@ head(Id) ->
 box() ->
   receive 
     Box when is_list(Box) -> Box
-  after
-    500 -> exit(request_timeout)
   end.
 
 box(Id) ->
