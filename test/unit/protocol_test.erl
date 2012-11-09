@@ -1,4 +1,4 @@
--module(sim_protocol_test).
+-module(protocol_test).
 -import(protocol, [write/1, read/1]).
 -include("genesis.hrl").
 -include("genesis_test.hrl").

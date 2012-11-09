@@ -1,10 +1,10 @@
--module(sim_game_test).
+-module(mod_game_test).
 -include("genesis.hrl").
 -include("genesis_test.hrl").
 
 -define(TWO_PLAYERS, [{?JACK, ?JACK_ID}, {?TOMMY, ?TOMMY_ID}]).
 
-rank_test_() -> {setup, fun setup_with_rank/0, fun cleanup/1, fun () ->
+rank_test_() -> {setup, fun setup_with_rank/0, fun sim:clean/1, fun () ->
         Players = ?TWO_PLAYERS,
         sim:join_and_start_game(Players),
         sim:check_blind_only_raise(Players, 1, 1, 2),
@@ -15,9 +15,10 @@ rank_test_() -> {setup, fun setup_with_rank/0, fun cleanup/1, fun () ->
         ?assertMatch(#notify_hand{rank = ?HC_THREE_KIND, high1 = ?CF_THREE}, sim_client:head(?TOMMY))
     end}.
 
-shutdown_test_() -> {setup, fun setup_with_shutdown/0, fun cleanup/1, fun () ->
+shutdown_test_() -> {setup, fun setup_with_shutdown/0, fun sim:clean/1, fun () ->
         Players = ?TWO_PLAYERS,
         sim:join_and_start_game(Players),
+
         sim:check_blind_only_raise(Players, 1, 1, 2),
         sim:check_deal(),
         sim:check_shared(3, Players),
@@ -63,19 +64,10 @@ setup_with_rank() ->
   setup([{blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C")]}, {deal_cards, [2, private]}, {deal_cards, [1, shared]}, {ranking, []}]).
 
 setup(MixinMods) ->
-  schema_test:init(),
-  sim_client:setup_players(?PLAYERS),
-  Mods = [{wait_players, []}] ++ MixinMods ++ [{stop, []}],
-  Limit = #limit{min = 100, max = 400, small = 10, big = 20},
-  Conf = #tab_game_config{module = game, mods = Mods, limit = Limit, seat_count = 9, start_delay = 500, required = 2, timeout = 1000, max = 1},
-  game:start(Conf).
-
-cleanup(Games) ->
-  lists:foreach(fun ({ok, Pid}) -> exch:stop(Pid) end, Games),
-  lists:foreach(fun ({Key, _R}) -> sim_client:stop(Key) end, ?PLAYERS).
-
-%%%
-%%% private
-%%%
-
-
+  sim:setup(),
+  sim:setup_game(
+    #tab_game_config{
+      module = game, required = 2, seat_count = 9, 
+      limit = #limit{min = 100, max = 400, small = 10, big = 20},
+      mods = [{poker_mod_suspend, []}, {wait_players, []}] ++ MixinMods ++ [{stop, []}],
+      start_delay = 500, timeout = 1000, max = 1}).

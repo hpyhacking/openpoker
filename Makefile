@@ -12,7 +12,7 @@ compile:
 	@$(REBAR) compile
 
 test: compile
-	@$(REBAR) eunit skip_deps=true
+	@$(REBAR) eunit skip_deps=true -v
 
 qc: compile
 	@$(REBAR) qc skip_deps=true
