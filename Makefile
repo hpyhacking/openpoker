@@ -30,3 +30,7 @@ build-plt:
 dialyze: compile
 	@$(DIALYZER) --src src --plt .dialyzer_plt $(DIALYZER_WARNINGS) | \
 	    fgrep -vf .dialyzer-ignore-warnings
+
+generate:
+	./priv/generate_server_protocol.sh
+	./priv/generate_client_protocol.sh

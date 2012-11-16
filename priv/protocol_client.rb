@@ -9,42 +9,50 @@ SAVED = {
   :NotifySeat => 'sn'
 }
 
+INTEGER = 't_integer'
+STRING = 't_string'
+COIN = 't_coin'
+CARD = 't_card'
+CARDS = 't_cards'
+BYTE = 't_byte'
+LIMIT = 't_limit'
+
 TYPES = {
-  :card => "card",
-  :cards => "cards",
-  :limit => "limit",
+  :card => CARD,
+  :cards => CARDS,
+  :limit => LIMIT,
 
-  :identity => "string",
-  :password => "string",
-  :name => "string",
-  :nick => "string",
-  :photo => "string",
+  :identity => STRING,
+  :password => STRING,
+  :name => STRING,
+  :nick => STRING,
+  :photo => STRING,
 
-  :state => "integer",
-  :game_id => "integer",
-  :player_id => "integer",
-  :size => "integer",
+  :state => INTEGER,
+  :game_id => INTEGER,
+  :player_id => INTEGER,
+  :size => INTEGER,
 
-  :min => "coin",
-  :max => "coin",
-  :pot => "coin",
-  :bet => "coin",
-  :call => "coin",
-  :raise => "coin",
-  :buyin => "coin",
-  :inplay => "coin",
-  :balance => "coin",
-  :amount => "coin",
+  :min => COIN,
+  :max => COIN,
+  :pot => COIN,
+  :bet => COIN,
+  :call => COIN,
+  :raise => COIN,
+  :buyin => COIN,
+  :inplay => COIN,
+  :balance => COIN,
+  :amount => COIN,
 
-  :b => "byte",
-  :bb => "byte",
-  :sb => "byte",
-  :sn => "byte",
-  :stage => "byte",
-  :seats => "byte",
-  :joined => "byte", :require => "byte", :rank => "byte", :suit => "byte", :high1 => "byte",
-  :high2 => "byte",
-  :error => "byte"
+  :b => BYTE,
+  :bb => BYTE,
+  :sb => BYTE,
+  :sn => BYTE,
+  :stage => BYTE,
+  :seats => BYTE,
+  :joined => BYTE, :require => BYTE, :rank => BYTE, :suit => BYTE, :high1 => BYTE,
+  :high2 => BYTE,
+  :error => BYTE
 }
 
 def to_n str
