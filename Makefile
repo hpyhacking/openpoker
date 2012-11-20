@@ -34,3 +34,8 @@ dialyze: compile
 generate:
 	./priv/generate_server_protocol.sh
 	./priv/generate_client_protocol.sh
+
+console:
+	rm -rf rel/genesis/Mnesia*
+	rebar generate
+	./rel/genesis/bin/genesis console
