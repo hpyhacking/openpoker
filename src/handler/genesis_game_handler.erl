@@ -77,6 +77,7 @@ handle_protocol(#cmd_login{identity = Identity, password = Password}, LoopData) 
       player:client(Player),
       player:info(Player),
       player:balance(Player),
+      send(#notify_signin{player = Info#tab_player_info.pid}),
       LoopData#pdata{player = Player, player_info = Info}
   end;
 
@@ -91,9 +92,11 @@ handle_protocol(#cmd_query_game{}, LoopData = #pdata{player = Player}) when is_p
   LoopData;
 
 handle_protocol(R, LoopData = #pdata{player = Player}) when is_pid(Player) ->
-  player:cast(Player, R), LoopData;
+  player:cast(Player, R),
+  LoopData;
 
-handle_protocol(_R, _LoopData) ->
+handle_protocol(R, LoopData) ->
+  error_logger:warning_report({undef_protocol, R, LoopData}),
   send(#notify_error{error = ?ERR_PROTOCOL}),
   webtekcos:close().
 

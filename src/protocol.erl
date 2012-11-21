@@ -245,6 +245,9 @@ read(<<?NOTIFY_WATCH, Bin/binary>>) ->
 read(<<?NOTIFY_UNWATCH, Bin/binary>>) ->
   unpickle(record(notify_unwatch, {game_id(), player_id(), internal(), internal()}), Bin);
 
+read(<<?NOTIFY_SIGNIN, Bin/binary>>) ->
+  unpickle(record(notify_signin, {player_id()}), Bin);
+
 read(<<?NOTIFY_ERROR, Bin/binary>>) ->
   unpickle(record(notify_error, {error()}), Bin);
 
@@ -379,6 +382,9 @@ write(R) when is_record(R, notify_watch) ->
 
 write(R) when is_record(R, notify_unwatch) ->
   [?NOTIFY_UNWATCH | pickle(record(notify_unwatch, {game_id(), player_id(), internal(), internal()}), R)];
+
+write(R) when is_record(R, notify_signin) ->
+  [?NOTIFY_SIGNIN | pickle(record(notify_signin, {player_id()}), R)];
 
 write(R) when is_record(R, notify_error) ->
   [?NOTIFY_ERROR | pickle(record(notify_error, {error()}), R)];

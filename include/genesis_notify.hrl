@@ -90,6 +90,8 @@
 -define(NOTIFY_UNWATCH,       130).
 -record(notify_unwatch,       { game, player, '|', proc }).
 
+-define(NOTIFY_SIGNIN,        131).
+-record(notify_signin,        { player }).
+
 -define(NOTIFY_ERROR,         255).
 -record(notify_error,         { error }).
-
