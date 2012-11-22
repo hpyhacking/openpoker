@@ -37,5 +37,5 @@ generate:
 
 console:
 	rm -rf rel/genesis/Mnesia*
-	rebar generate
+	rebar compile generate
 	./rel/genesis/bin/genesis console
