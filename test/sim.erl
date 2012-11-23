@@ -209,6 +209,7 @@ setup_players(L) when is_list(L) ->
         mnesia:dirty_write(R),
         sim_client:start(Key),
         sim_client:send(Key, #cmd_login{identity = Identity, password = <<?DEF_PWD>>}),
+        ?assertMatch(#notify_signin{}, sim_client:head(Key)),
         ?assertMatch(#notify_player{}, sim_client:head(Key)),
         ?assertMatch(#notify_acount{}, sim_client:head(Key)),
         {Key, R}

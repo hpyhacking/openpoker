@@ -40,15 +40,3 @@ login_disable_test_() -> {setup, fun sim:setup/0, fun sim:clean/1, fun() ->
         ?assertNot(is_pid(whereis(?MODULE))),
         ?assertMatch([#notify_error{error = ?ERR_PLAYER_DISABLE}], sim_client:box())
     end}.
-
-login_successful_test_() -> {setup, fun sim:setup/0, fun sim:clean/1, fun() ->
-        sim_client:start(?MODULE),
-        ?assert(is_pid(whereis(?JACK))),
-        Jack = sim_client:player(?JACK, ?PLAYERS),
-        mnesia:dirty_write(Jack),
-        sim_client:send(?JACK, #cmd_login{identity = <<"jack">>, password = <<"def_pwd">>}),
-        ?assert(is_pid(?LOOKUP_PLAYER(Jack#tab_player_info.pid))),
-        ?assertMatch(#notify_player{}, sim_client:head(?JACK)),
-        ?assertMatch(#notify_acount{}, sim_client:head(?JACK)),
-        sim_client:stop(whereis(?MODULE))
-    end}.

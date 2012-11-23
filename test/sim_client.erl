@@ -45,7 +45,8 @@ send(Id, R) ->
 head(Id) ->
   case whereis(Id) of
     ?UNDEF ->
-      error_logger:error_report("sim_client:head/1 to undefined process");
+      error_logger:error_report("sim_client:head/1 to undefined process"),
+      ?UNDEF;
     Pid ->
       Pid ! {sim, head, self()},
       receive 
