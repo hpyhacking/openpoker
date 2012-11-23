@@ -49,7 +49,7 @@
 -record(notify_actor,         { game, player, sn }).  
 
 -define(NOTIFY_BETTING,       117).
--record(notify_betting,       { game, player, call, min, max }).
+-record(notify_betting,       { game, player, sn, call, min, max }).
 
 -define(NOTIFY_DRAW,          118).
 -record(notify_draw,          { game, player, sn, card }).
