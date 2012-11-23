@@ -20,9 +20,9 @@ connect(ConnectTimeout) ->
   Timer = erlang:start_timer(ConnectTimeout, self(), ?MODULE),
   #pdata{connection_timer = Timer}.
 
-disconnect(#pdata{player_info = Info, player = Player}) when is_pid(Player) ->
-  player:logout(Player),
-  genesis_players_sup:terminate_child(Info#tab_player_info.pid);
+disconnect(#pdata{player = Player}) when is_pid(Player) ->
+  player:phantom(Player),
+  ok;
 
 disconnect(_) ->
   ok.
@@ -69,16 +69,18 @@ handle_protocol(#cmd_login{identity = Identity, password = Password}, LoopData) 
       % receive {'EXIT'} when player process error
       case genesis_players_sup:start_child(Info) of
         {ok, Player} ->
-          ok;
-        {error, {already_started, Player}} ->
-          ok
-      end,
-
-      player:client(Player),
-      player:info(Player),
-      player:balance(Player),
-      send(#notify_signin{player = Info#tab_player_info.pid}),
-      LoopData#pdata{player = Player, player_info = Info}
+          player:client(Player),
+          player:info(Player),
+          player:balance(Player),
+          send(#notify_signin{player = Info#tab_player_info.pid}),
+          LoopData#pdata{player = Player, player_info = Info};
+        {error, already_present} ->
+          send(#notify_error{error = ?ERR_PLAYER_BUSY}),
+          webtekcos:close();
+        {error, {already_started, _Player}} ->
+          send(#notify_error{error = ?ERR_PLAYER_BUSY}),
+          webtekcos:close()
+      end
   end;
 
 handle_protocol(#cmd_logout{}, #pdata{player = Player, player_info = Info}) when is_pid(Player) ->

@@ -4,11 +4,13 @@
 -export([init/1, handle_call/3, handle_cast/2, 
          handle_info/2, terminate/2, code_change/3]).
 
--export([start/1, start_link/1, stop/1, notify/2, cast/2, auth/2, logout/1]).
+-export([start/1, start_link/1, notify/2, cast/2, auth/2, logout/1]).
 
 -export([client/1, info/1, balance/1]).
 
 -export([ctx/1, ctx/2]).
+
+-export([fold/2, leave/2, phantom/1]).
 
 -include("genesis.hrl").
 
@@ -23,7 +25,8 @@
     nick = ?UNDEF,
     photo = ?UNDEF,
     inplay = 0,
-    record
+    record,
+    phantom = ?UNDEF            %% player phantom pid
   }).
 
 init([R = #tab_player_info{pid = PId, identity = Identity, nick = Nick, photo = Photo}]) ->
@@ -55,6 +58,14 @@ handle_cast(R = #cmd_leave{game = G}, Data = #pd{playing = P, playing_sn = SN}) 
   {noreply, Data};
 
 handle_cast(#cmd_leave{}, Data) ->
+  {noreply, Data};
+
+handle_cast(R = #cmd_raise{game = G}, Data = #pd{playing = P}) when G =:= P ->
+  game:raise(G, R#cmd_raise{sn = Data#pd.playing_sn, pid = Data#pd.pid}),
+  {noreply, Data};
+
+handle_cast(R = #cmd_fold{game = G}, Data = #pd{playing = P}) when G =:= P ->
+  game:fold(G, R#cmd_fold{pid = Data#pd.pid}),
   {noreply, Data};
 
 %% player info query
@@ -98,31 +109,16 @@ handle_cast({notify, R}, Data) ->
   forward_to_client(R, Data),
   {noreply, Data};
 
-handle_cast(stop, Data) ->
-  {stop, normal, Data};
-
-handle_cast({stop, Reason}, Data) ->
-  {stop, Reason, Data};
-
-handle_cast(R = #cmd_raise{game = G}, Data = #pd{playing = P}) when G =:= P ->
-  game:raise(G, R#cmd_raise{sn = Data#pd.playing_sn, pid = Data#pd.pid}),
-  {noreply, Data};
-
-handle_cast(R = #cmd_fold{game = G}, Data = #pd{playing = P}) when G =:= P ->
-  game:fold(G, R#cmd_fold{pid = Data#pd.pid}),
-  {noreply, Data};
-
 handle_cast(logout, Data = #pd{playing = ?UNDEF}) ->
-  error_logger:info_report({player_loggout, nothing_join_game}),
   {noreply, Data};
 
-handle_cast(logout, Data = #pd{playing = Game}) ->
-  error_logger:info_report({player_loggout, join_game, Game}),
-  {noreply, handle_cast(#cmd_leave{game = Game}, Data)};
-  
-handle_cast(R, Data) ->
-  ?LOG([{unknown_cast, R}]),
-  {noreply, Data}.
+handle_cast(phantom, Data = #pd{playing = ?UNDEF}) ->
+  genesis_players_sup:terminate_child_ex(Data#pd.pid),
+  {noreply, Data#pd{client = ?UNDEF, phantom = ?UNDEF}};
+
+handle_cast(phantom, Data = #pd{playing = Game, playing_sn = SN}) ->
+  {ok, Phantom} = op_phantom:start_link(Data#pd.pid, Game, SN),
+  {noreply, Data#pd{client = ?UNDEF, phantom = Phantom}}.
 
 handle_call(ctx, _From, Data) ->
   {reply, Data, Data};
@@ -133,9 +129,6 @@ handle_call(info, _From, Data = #pd{record = R}) ->
 handle_call({client, Client}, _From, Data) when is_pid(Client) ->
   {reply, Client, Data#pd{ client = Client}};
 
-handle_call(kill, _From, Data) ->
-  {stop, normal, ok, Data};
-
 handle_call(plist, _From, Data) ->
   {reply, [{nick, Data#pd.nick}, {photo, Data#pd.photo}, {pid, Data#pd.pid}, {proc, Data#pd.self}], Data};
 
@@ -143,7 +136,8 @@ handle_call(R, From, Data) ->
   error_logger:info_report([{module, ?MODULE}, {process, self()}, {unknown_call, R}, {from, From}]),
   {noreply, Data}.
 
-terminate(_Reason, _Data) ->
+terminate(Reason, _Data) ->
+  error_logger:info_report([{player, terminate}, {reason, Reason}]),
   ok.
 
 handle_info({'EXIT', _Pid, _Reason}, Data) ->
@@ -171,12 +165,6 @@ start_link(R = #tab_player_info{pid = PId}) ->
 
 start(R = #tab_player_info{pid = PId}) ->
   gen_server:start(?PLAYER(PId), ?MODULE, [R], []).
-
-stop(PId) when is_integer(PId) ->
-  gen_server:cast(?PLAYER(PId), stop);
-
-stop(Pid) when is_pid(Pid) ->
-  gen_server:cast(Pid, stop).
 
 notify(R) ->
   notify(self(), R).
@@ -211,9 +199,6 @@ auth(Info = #tab_player_info{disabled = Disabled}, player_disable) ->
     _ -> {ok, player_disable}
   end.
 
-logout(Player) when is_pid(Player) ->
-  gen_server:cast(Player, logout).
-
 info(Player) when is_pid(Player) ->
   gen_server:cast(Player, #cmd_query_player{}).
 
@@ -223,6 +208,22 @@ balance(Player) when is_pid(Player) ->
 client(Player) when is_pid(Player) ->
   Client = self(),
   Client = gen_server:call(Player, {client, Client}).
+
+logout(Player) when is_pid(Player) ->
+  gen_server:cast(Player, logout);
+
+logout(Player) when is_integer(Player) ->
+  logout(?LOOKUP_PLAYER(Player)).
+
+fold(PID, GID) when is_integer(PID), is_pid(GID) ->
+  gen_server:cast(?LOOKUP_PLAYER(PID), #cmd_fold{game = GID}).
+
+leave(PID, GID) when is_integer(PID), is_pid(GID) ->
+  gen_server:cast(?LOOKUP_PLAYER(PID), #cmd_leave{game = GID}).
+
+phantom(PID) when is_pid(PID) ->
+  gen_server:cast(PID, phantom).
+
 
 %%%
 %%% private
@@ -238,7 +239,7 @@ reload_player_info(PId) ->
 create_runtime(PID, Process) when is_number(PID), is_pid(Process) ->
   mnesia:dirty_write(#tab_player{ pid = PID, process = Process }).
 
-forward_to_client(_, #pd{client = Client}) when Client =:= ?UNDEF -> 
-  exit(undefined_client);
-forward_to_client(R, #pd{client = Client}) -> 
-  genesis_game_handler:send(Client, R).
+forward_to_client(R, #pd{client = ?UNDEF, phantom = P}) when is_pid(P) -> 
+  op_phantom:send(P, R);
+forward_to_client(R, #pd{client = C, phantom = ?UNDEF}) when is_pid(C) -> 
+  genesis_game_handler:send(C, R).

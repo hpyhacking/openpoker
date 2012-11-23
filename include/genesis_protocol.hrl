@@ -6,6 +6,7 @@
 -define(ERR_AGENT_DISABLE,          6).
 -define(ERR_PLAYER_DISABLE,         7).
 -define(ERR_JOIN_LESS_BALANCE,      8).
+-define(ERR_PLAYER_BUSY,            9).
 
 %% Game Commands
 -define(CMD_LOGIN,            10).
