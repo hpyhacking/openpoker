@@ -65,6 +65,7 @@ handle_cast(stop, Data) ->
 
 handle_cast(Msg, Data = #exch{stack = Stack, ctx = Ctx, state = State}) ->
   {Mod, _} = hd(Stack),
+  op_exch_event:cast([{mod, Mod}, {state, State}, {msg, Msg}]),
   advance(Mod:State(Msg, Ctx), Msg, Data).
 
 handle_call(Msg, _From, Data = #exch{module = Module, ctx = Context}) ->
@@ -89,7 +90,7 @@ code_change(_OldVsn, Data, _Extra) ->
 init(Msg, Data = #exch{ stack = [{Mod, Params}|_], ctx = Ctx }) ->
   advance(Mod:start(Params, Ctx), Msg, Data#exch{ state = ?UNDEF }).
 
-advance({continue, Data, Ctx}, _Msg, Data = #exch{}) ->
+advance({continue, Ctx}, _Msg, Data = #exch{}) ->
   {noreply, Data#exch{ ctx = Ctx }};
 
 advance({next, State, Ctx}, _Msg, Data) ->
@@ -114,8 +115,8 @@ advance({goto, Mod, Ctx}, Msg, Data = #exch{stack = Stack}) ->
   init(Msg, Data#exch{ ctx = Ctx, stack = trim_stack(Mod, Stack) });
 
 advance(Command, Msg, Data) ->
-  ?LOG([{command, Command}, {msg, Msg}, {mod, hd(Data#exch.mods)}, {state, Data#exch.state}, {exch, Data}]),
-  {noreply, none}.
+  error_logger:error_report([{command, Command}, {msg, Msg}, {mods, Data#exch.mods}, {state, Data#exch.state}, {exch, Data}]),
+  {noreply, Data}.
 
 trim_stack(_Mod, L = [{_LastMod, _}]) -> L;
 trim_stack(Mod, L = [{H, _}|_]) when Mod == H -> L;

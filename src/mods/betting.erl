@@ -58,7 +58,8 @@ betting(#cmd_raise{ amount = Raise}, Ctx = #texas{exp_seat = Exp, exp_call = Cal
 %%%
 
 betting(#cmd_fold{pid = PId}, Ctx = #texas{exp_seat = Exp}) when Exp#seat.pid /= PId ->
-  {continue, Ctx};
+  error_logger:info_report({cmd_fold, skip, other}),
+  {skip, Ctx};
 
 betting(#cmd_fold{}, Ctx = #texas{seats = S, exp_seat = Exp}) ->
   NotTimerCtx = cancel_timer(Ctx),
@@ -99,11 +100,11 @@ ask_for_bet(H = #seat{inplay = Inplay}, Ctx = #texas{}) ->
 
 ask_for_bet(H = #seat{}, Ctx = #texas{limit = Limit}, {?ZERO, Inplay}) ->
   ask_for_bet(H, Ctx, {Limit#limit.big, Inplay});
-ask_for_bet(H = #seat{sn = SN}, Ctx = #texas{gid = Id}, {Min, Inplay}) ->
+ask_for_bet(H = #seat{sn = SN, pid = PID}, Ctx = #texas{gid = Id}, {Min, Inplay}) ->
   ExpAmt = Ctx#texas.max_betting - H#seat.bet,
   Max = Inplay - ExpAmt,
   game:broadcast(#notify_actor{ game = Id, sn = SN}, Ctx),
-  player:notify(H#seat.process, #notify_betting{ game = Id, call = ExpAmt, min = Min, max = Max}),
+  player:notify(H#seat.process, #notify_betting{ game = Id, player = PID, call = ExpAmt, min = Min, max = Max}),
 
   TimerCtx = start_timer(Ctx),
   ExpCtx = TimerCtx#texas{ exp_seat = H, exp_call = ExpAmt, exp_min = Min, exp_max = Max },

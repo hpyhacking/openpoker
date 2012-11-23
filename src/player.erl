@@ -143,8 +143,8 @@ handle_call(R, From, Data) ->
   error_logger:info_report([{module, ?MODULE}, {process, self()}, {unknown_call, R}, {from, From}]),
   {noreply, Data}.
 
-terminate(_Reason, Data) ->
-  ok = mnesia:dirty_delete(tab_player, Data#pd.pid).
+terminate(_Reason, _Data) ->
+  ok.
 
 handle_info({'EXIT', _Pid, _Reason}, Data) ->
     %% child exit?
