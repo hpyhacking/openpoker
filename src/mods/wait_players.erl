@@ -7,7 +7,13 @@ start(_Params, Ctx = #texas{start_delay = 0}) ->
   wait_for_players({timeout, ?UNDEF, ?MODULE}, Ctx);
 start(_Params, Ctx = #texas{start_delay = StartDelay}) ->
   Timer = erlang:start_timer(StartDelay, self(), ?MODULE),
-  {next, wait_for_players, Ctx#texas{ timer = Timer }}.
+  NewCtx = Ctx#texas{
+    timer = Timer,
+    exp_seat = ?UNDEF,
+    exp_call = 0,
+    exp_min = 0,
+    exp_max = 0 },
+  {next, wait_for_players, NewCtx }.
 
 wait_for_players({timeout, _, ?MODULE}, Ctx = #texas{seats = Seats, required = R, joined = J}) when J < R ->
   clear_out_players(seat:lookup(?PS_OUT, Seats), Ctx),

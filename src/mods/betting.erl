@@ -59,7 +59,7 @@ betting(#cmd_raise{ amount = Raise}, Ctx = #texas{exp_seat = Exp, exp_call = Cal
 
 betting(#cmd_fold{pid = PId}, Ctx = #texas{exp_seat = Exp}) when Exp#seat.pid /= PId ->
   error_logger:info_report({cmd_fold, skip, other}),
-  {skip, Ctx};
+  {continue, Ctx};
 
 betting(#cmd_fold{}, Ctx = #texas{seats = S, exp_seat = Exp}) ->
   NotTimerCtx = cancel_timer(Ctx),

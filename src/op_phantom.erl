@@ -23,7 +23,7 @@ send(P, R) ->
 %%
 
 init([PID, GID, SN]) ->
-  error_logger:info_report([{phantom, create}]),
+  op_exch_event:phantom([{init, PID}]),
   {ok, #pd{pid = PID, gid = GID, sn = SN}}.
 
 terminate(_Reason, _LoopData) ->
@@ -42,14 +42,15 @@ handle_cast(#notify_game_cancel{}, LoopData) ->
   handle_cast(#notify_game_end{}, LoopData);
 
 handle_cast(#notify_game_end{}, LoopData = #pd {pid = PID, gid = GID}) ->
-  error_logger:info_report([{phantom, notify_game_over}]),
+  op_exch_event:phantom([{game_over, PID}]),
   player:leave(PID, GID),
   {noreply, LoopData};
 
 handle_cast(#notify_leave{sn = SN}, LoopData = #pd{pid = PID, sn = SN}) ->
-  %% TODO 这里可以处理的更好一些，而不是简单粗暴的将进程杀掉。
+  op_exch_event:phantom([{player_leave, PID}]),
+  %% TODO better process player, don't kill process
   genesis_players_sup:terminate_child_ex(PID),
-  error_logger:info_report([{phantom, terminate_child}]),
+  op_exch_event:phantom([{terminate_child, PID}]),
   {noreply, LoopData};
   
 handle_cast(#notify_betting{}, LoopData = #pd{pid = PID, gid = GID}) ->
