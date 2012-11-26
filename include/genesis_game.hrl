@@ -89,19 +89,19 @@
     {deal_cards, [2, private]}, 
     {ranking, []}, 
     %% start after BB, 3 raises
-    {betting, [?GS_PREFLOP]}, 
+    {op_mod_betting, [?GS_PREFLOP]}, 
     {deal_cards, [3, shared]}, 
     {ranking, []}, 
     %% flop
-    {betting, [?GS_FLOP]}, 
+    {op_mod_betting, [?GS_FLOP]}, 
     {deal_cards, [1, shared]}, 
     {ranking, []}, 
     %% turn
-    {betting, [?GS_TURN]}, 
+    {op_mod_betting, [?GS_TURN]}, 
     {deal_cards, [1, shared]}, 
     {ranking, []}, 
     %% river
-    {betting, [?GS_RIVER]}, 
+    {op_mod_betting, [?GS_RIVER]}, 
     {showdown, []},
     {restart, []}
   ]).
@@ -157,7 +157,7 @@
     sb_amt = 0,
     bb_amt = 0,
     headsup = false,
-    max_betting = 0,
+    max_betting = 0,            %% 当前游戏阶段最后一次加注后的金额
     exp_seat = none,            %% expecting seat
     exp_call = 0,               %% expecting call amount
     exp_min = 0,                %% expecting raise min amount

@@ -173,7 +173,7 @@ headsup_betting_and_leave_test_() -> {setup, fun setup_normal/0, fun sim:clean/1
     end}.
 
 setup_normal() ->
-  setup([{blinds, []}, {betting, [?GS_PREFLOP]}, {betting, [?GS_FLOP]}]).
+  setup([{blinds, []}, {op_mod_betting, [?GS_PREFLOP]}, {op_mod_betting, [?GS_FLOP]}]).
 
 setup(MixinMods) ->
   sim:setup(),
@@ -181,7 +181,7 @@ setup(MixinMods) ->
     #tab_game_config{
       module = game, seat_count = 9, required = 2,
       limit = #limit{min = 100, max = 400, small = 10, big = 20},
-      mods = [{poker_mod_suspend, []}, {wait_players, []}] ++ MixinMods ++ [{stop, []}],
+      mods = [{op_mod_suspend, []}, {wait_players, []}] ++ MixinMods ++ [{stop, []}],
       start_delay = 0, timeout = 1000, max = 1}).
 
 %%%

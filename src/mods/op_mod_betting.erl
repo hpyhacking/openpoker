@@ -1,4 +1,4 @@
--module(betting).
+-module(op_mod_betting).
 -behaviour(op_exch_mod).
 -export([start/2, dispatch/2, betting/2]).
 
@@ -10,9 +10,10 @@
 %%% callback
 %%%
 
-start([?GS_PREFLOP], Ctx = #texas{bb = At, bb_amt = Amt}) -> 
+start([?GS_PREFLOP], Ctx = #texas{bb = At}) -> 
   game:broadcast(#notify_stage{game = Ctx#texas.gid, stage = ?GS_PREFLOP}, Ctx),
-  ask(At, Ctx#texas{stage = ?GS_PREFLOP, max_betting = Amt});
+  ask(At, Ctx#texas{stage = ?GS_PREFLOP, max_betting = Ctx#texas.bb_amt});
+
 start([Stage], Ctx = #texas{b = At}) -> 
   game:broadcast(#notify_stage{game = Ctx#texas.gid, stage = Stage}, Ctx),
   ask(At, Ctx#texas{stage = Stage, max_betting = 0}).
@@ -95,15 +96,20 @@ ask([H|_], Ctx = #texas{}) ->
 % small blind fix big blind
 ask_for_bet(H = #seat{inplay = Inplay, sn = SN, bet = B}, Ctx = #texas{sb = SB, stage = S})
 when S =:= ?GS_PREFLOP, SN =:= SB#seat.sn, B =:= Ctx#texas.sb_amt ->
+  io:format("===ASK=== PREFLOP SB~n"),
   ask_for_bet(H, Ctx, {Ctx#texas.max_betting, Inplay});
+
 ask_for_bet(H = #seat{inplay = Inplay, sn = SN, bet = B}, Ctx = #texas{bb = BB, limit = Limit, stage = S})
 when S =:= ?GS_PREFLOP, SN =:= BB#seat.sn, B =:= Ctx#texas.bb_amt ->
+  io:format("===ASK=== PREFLOP BB~n"),
   ask_for_bet(H, Ctx, {Limit#limit.big, Inplay});
+
 ask_for_bet(H = #seat{inplay = Inplay}, Ctx = #texas{}) ->
   ask_for_bet(H, Ctx, {Ctx#texas.max_betting - H#seat.bet , Inplay}).
 
 ask_for_bet(H = #seat{}, Ctx = #texas{limit = Limit}, {?ZERO, Inplay}) ->
   ask_for_bet(H, Ctx, {Limit#limit.big, Inplay});
+
 ask_for_bet(H = #seat{sn = SN, pid = PID}, Ctx = #texas{gid = Id}, {Min, Inplay}) ->
   ExpAmt = Ctx#texas.max_betting - H#seat.bet,
   Max = Inplay - ExpAmt,

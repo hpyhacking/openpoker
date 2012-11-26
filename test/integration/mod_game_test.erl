@@ -57,7 +57,7 @@ shutdown_test_() -> {setup, fun setup_with_shutdown/0, fun sim:clean/1, fun () -
 setup_with_shutdown() ->
   Mods = [{blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C 4C 4S ")]}, 
     {deal_cards, [2, private]}, {deal_cards, [3, shared]}, {ranking, []},
-    {betting, [?GS_PREFLOP]}, {showdown, []}, {wait_players, []}],
+    {op_mod_betting, [?GS_PREFLOP]}, {showdown, []}, {wait_players, []}],
   setup(Mods).
 
 setup_with_rank() ->
@@ -69,5 +69,5 @@ setup(MixinMods) ->
     #tab_game_config{
       module = game, required = 2, seat_count = 9, 
       limit = #limit{min = 100, max = 400, small = 10, big = 20},
-      mods = [{poker_mod_suspend, []}, {wait_players, []}] ++ MixinMods ++ [{stop, []}],
+      mods = [{op_mod_suspend, []}, {wait_players, []}] ++ MixinMods ++ [{stop, []}],
       start_delay = 500, timeout = 1000, max = 1}).

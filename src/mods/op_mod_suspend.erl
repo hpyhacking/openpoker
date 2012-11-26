@@ -1,4 +1,4 @@
--module(poker_mod_suspend).
+-module(op_mod_suspend).
 -behaviour(op_exch_mod).
 -export([start/2, dispatch/2, suspend/2]).
 

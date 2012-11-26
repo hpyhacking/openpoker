@@ -62,5 +62,5 @@ setup(MixinMods) ->
     #tab_game_config{
       module = game, seat_count = 9, required = 2,
       limit = #limit{min = 100, max = 500, small = 5, big = 10},
-      mods = [{poker_mod_suspend, []}, {wait_players, []}] ++ MixinMods ++ [{stop, []}],
+      mods = [{op_mod_suspend, []}, {wait_players, []}] ++ MixinMods ++ [{stop, []}],
       start_delay = 0, timeout = 1000, max = 1}).
