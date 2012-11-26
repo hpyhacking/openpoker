@@ -125,7 +125,7 @@ advance({next, State, Ctx}, _Msg, Data) ->
 %% skip mod process, post to Module:dispatch.
 advance({skip, Ctx}, Msg, Data = #exch{stack = Stack, module = Module}) ->
   {Mod, _} = hd(Stack),
-  op_exch_event:advance([{mod, Mod}, {state, Data#exch.state}, {msg, Msg}]),
+  op_exch_event:advance([{mod, Mod}, {state, Data#exch.state}, {skip, Msg}]),
   {noreply, Data#exch{ ctx = Module:dispatch(Msg, Ctx) }};
 
 %% 
