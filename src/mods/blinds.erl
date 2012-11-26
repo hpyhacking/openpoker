@@ -1,5 +1,6 @@
 -module(blinds).
--export([start/2]).
+-behaviour(op_exch_mod).
+-export([start/2, dispatch/2]).
 
 -include("genesis.hrl").
 -include_lib("eunit/include/eunit.hrl").
@@ -24,6 +25,9 @@ start([], Ctx = #texas{gid = Id, limit = Limit}) ->
       sb_amt = SmallAmt, bb_amt = BigAmt,
       b = Button, sb = Small, bb = Big, headsup = Headsup
   }}.
+
+dispatch(_R, _Ctx) ->
+  ok.
 
 %%
 %% private

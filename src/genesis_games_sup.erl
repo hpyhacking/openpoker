@@ -34,6 +34,6 @@ start_child(Conf = #tab_game_config{}) ->
 
 gen(#tab_game_config{max = 0}, Acc) -> Acc;
 gen(Conf = #tab_game_config{module = Module, mods = Mods, max = N}, Acc) ->
-  StartMod = {exch, start_link, [Module, Conf, Mods]},
+  StartMod = {op_exch, start_link, [Module, Conf, Mods]},
   NewAcc = [{make_ref(), StartMod, permanent, 2000, worker, []}] ++ Acc,
   gen(Conf#tab_game_config{max = N - 1}, NewAcc).

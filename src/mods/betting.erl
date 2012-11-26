@@ -1,5 +1,6 @@
 -module(betting).
--export([start/2, betting/2]).
+-behaviour(op_exch_mod).
+-export([start/2, dispatch/2, betting/2]).
 
 -include("genesis.hrl").
 
@@ -15,6 +16,9 @@ start([?GS_PREFLOP], Ctx = #texas{bb = At, bb_amt = Amt}) ->
 start([Stage], Ctx = #texas{b = At}) -> 
   game:broadcast(#notify_stage{game = Ctx#texas.gid, stage = Stage}, Ctx),
   ask(At, Ctx#texas{stage = Stage, max_betting = 0}).
+
+dispatch(_R, _Ctx) ->
+  ok.
 
 % not expectation seat player
 betting(#cmd_raise{pid = PId}, Ctx = #texas{exp_seat = Exp}) when Exp#seat.pid /= PId -> 

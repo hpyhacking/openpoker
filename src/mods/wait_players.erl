@@ -1,5 +1,6 @@
 -module(wait_players).
--export([start/2, wait_for_players/2]).
+-behaviour(op_exch_mod).
+-export([start/2, dispatch/2, wait_for_players/2]).
 
 -include("genesis.hrl").
 
@@ -14,6 +15,13 @@ start(_Params, Ctx = #texas{start_delay = StartDelay}) ->
     exp_min = 0,
     exp_max = 0 },
   {next, wait_for_players, NewCtx }.
+
+dispatch(#cmd_raise{}, _Ctx) -> 
+  skip;
+dispatch(#cmd_fold{}, _Ctx) ->
+  skip;
+dispatch(_R, _Ctx) ->
+  ok.
 
 wait_for_players({timeout, _, ?MODULE}, Ctx = #texas{seats = Seats, required = R, joined = J}) when J < R ->
   clear_out_players(seat:lookup(?PS_OUT, Seats), Ctx),

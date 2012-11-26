@@ -1,5 +1,6 @@
 -module(deal_cards).
--export([start/2]).
+-behaviour(op_exch_mod).
+-export([start/2, dispatch/2]).
 
 -include("genesis.hrl").
 
@@ -11,6 +12,9 @@ start([N, private], Ctx = #texas{b = B, seats = S}) ->
 start([0, shared], Ctx) -> {stop, Ctx};
 start([N, shared], Ctx) ->
   start([N-1, shared], draw_shared(Ctx)).
+
+dispatch(_R, _Ctx) ->
+  ok.
 
 %%%
 %%% private

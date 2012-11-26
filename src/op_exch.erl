@@ -1,4 +1,4 @@
--module(exch).
+-module(op_exch).
 -behaviour(gen_server).
 
 -export([behaviour_info/1]).
@@ -22,7 +22,7 @@ behaviour_info(callbacks) -> [
 
 start_link(Module, Conf, Mods) ->
   Id = Module:id(),
-  Pid = gen_server:start_link({global, {Module, Id}}, exch, [Module, Id, Conf, Mods], []),
+  Pid = gen_server:start_link({global, {Module, Id}}, op_exch, [Module, Id, Conf, Mods], []),
   start_logger(Pid, Id).
 
 start_logger(R = {ok, Pid}, Id) ->
@@ -31,7 +31,6 @@ start_logger(R = {ok, Pid}, Id) ->
     true ->
       op_exch_event_logger:add_handler(Pid);
     false ->
-      error_logger:info_report({not_find_logger, Id, LogGames}),
       ok
   end,
   R.
@@ -126,7 +125,12 @@ advance({next, State, Ctx}, _Msg, Data) ->
 advance({skip, Ctx}, Msg, Data = #exch{stack = Stack, module = Module}) ->
   {Mod, _} = hd(Stack),
   op_exch_event:advance([{mod, Mod}, {state, Data#exch.state}, {skip, Msg}]),
-  {noreply, Data#exch{ ctx = Module:dispatch(Msg, Ctx) }};
+  case Mod:dispatch(Msg, Ctx) of
+    ok ->
+      {noreply, Data#exch{ ctx = Module:dispatch(Msg, Ctx) }};
+    skip ->
+      {noreply, Data}
+  end;
 
 %% 
 advance({stop, Ctx}, _Msg, Data = #exch{ stack = [_] }) ->

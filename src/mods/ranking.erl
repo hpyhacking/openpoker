@@ -1,5 +1,6 @@
 -module(ranking).
--export([start/2]).
+-behaviour(op_exch_mod).
+-export([start/2, dispatch/2]).
 -export([rank/1, notify/1]).
 
 -include("genesis.hrl").
@@ -11,6 +12,9 @@
 start([], Ctx) ->
   notify(Ctx),
   {stop, Ctx}.
+
+dispatch(_R, _Ctx) ->
+  ok.
 
 %%%
 %%% client

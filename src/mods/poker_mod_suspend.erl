@@ -1,11 +1,15 @@
 -module(poker_mod_suspend).
--export([start/2, suspend/2]).
+-behaviour(op_exch_mod).
+-export([start/2, dispatch/2, suspend/2]).
 
 -include("genesis.hrl").
 
 start([], Ctx) ->
   erlang:start_timer(10 * 1000, self(), ?MODULE),
   {next, suspend, Ctx}.
+
+dispatch(_R, _Ctx) ->
+  ok.
 
 suspend({timeout, _, ?MODULE}, Ctx = #texas{}) ->
   {stop, Ctx};

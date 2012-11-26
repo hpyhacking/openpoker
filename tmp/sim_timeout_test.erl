@@ -45,7 +45,7 @@ setup() ->
   [Clients, Games].
 
 cleanup([Clients, Games]) ->
-  lists:map(fun (Game) -> exch:stop(Game) end, Games),
+  lists:map(fun (Game) -> op_exch:stop(Game) end, Games),
   lists:map(fun (Client) -> sim_client:stop(Client) end, Clients).
 
 login(L) ->

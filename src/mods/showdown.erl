@@ -1,5 +1,6 @@
 -module(showdown).
--export([start/2]).
+-behaviour(op_exch_mod).
+-export([start/2, dispatch/2]).
 
 -include("genesis.hrl").
 
@@ -28,6 +29,9 @@ start([], Ctx = #texas{gid = Id, seats = S, pot = P}) ->
   game:broadcast(#notify_game_end{ game = Id }, ResetCtx),
 
   {stop, ResetCtx}.
+
+dispatch(_R, _Ctx) ->
+  ok.
 
 %%%
 %%% private

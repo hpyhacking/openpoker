@@ -1,5 +1,5 @@
 -module(game).
--behaviour(exch).
+-behaviour(op_exch).
 
 -export([id/0, init/2, stop/1, dispatch/2, call/2]).
 -export([start/0, start/1, start_conf/2, config/0]).
@@ -174,7 +174,7 @@ start_conf(Conf, N) ->
 
 start_conf(_Conf, 0, L) -> L;
 start_conf(Conf = #tab_game_config{module = Module, mods = Mods}, N, L) when is_list(Mods) ->
-  {ok, Pid} = exch:start_link(Module, Conf, Mods),
+  {ok, Pid} = op_exch:start_link(Module, Conf, Mods),
   start_conf(Conf, N - 1, L ++ [{ok, Pid}]);
 start_conf(Conf = #tab_game_config{}, N, L) ->
   start_conf(Conf#tab_game_config{mods = default_mods()}, N, L).
