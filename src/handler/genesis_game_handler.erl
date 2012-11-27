@@ -105,7 +105,7 @@ handle_protocol(R, LoopData) ->
 send(R) -> send(self(), R).
 
 send(PID, R) ->
-  io:format("~n===============================~n~p~n", [R]),
+  %io:format("~n===============================~n~p~n", [R]),
   case catch protocol:write(R) of
     {'EXIT', Raise} ->
       error_logger:error_report({protocol, write, R, Raise});

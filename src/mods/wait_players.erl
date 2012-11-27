@@ -8,12 +8,7 @@ start(_Params, Ctx = #texas{start_delay = 0}) ->
   wait_for_players({timeout, ?UNDEF, ?MODULE}, Ctx);
 start(_Params, Ctx = #texas{start_delay = StartDelay}) ->
   Timer = erlang:start_timer(StartDelay, self(), ?MODULE),
-  NewCtx = Ctx#texas{
-    timer = Timer,
-    exp_seat = ?UNDEF,
-    exp_call = 0,
-    exp_min = 0,
-    exp_max = 0 },
+  NewCtx = Ctx#texas{timer = Timer},
   {next, wait_for_players, NewCtx }.
 
 dispatch(#cmd_raise{}, _Ctx) -> 

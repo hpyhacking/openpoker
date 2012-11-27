@@ -27,5 +27,5 @@ init(Mod, Msg) when is_atom(Mod) ->
   notify([{event, init}, {Mod, Msg}]).
 
 notify(Msg) ->
-  io:format('~n~n================================~n~p~n', [Msg]),
+  %io:format('~n~n================================~n~p~n', [Msg]),
   gen_event:notify(?MODULE, {self(), Msg}).
