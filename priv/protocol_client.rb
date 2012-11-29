@@ -32,6 +32,7 @@ TYPES = {
   :game_id => INTEGER,
   :player_id => INTEGER,
   :size => INTEGER,
+  :timeout => INTEGER,
 
   :min => COIN,
   :max => COIN,

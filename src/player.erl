@@ -118,7 +118,11 @@ handle_cast(phantom, Data = #pd{playing = ?UNDEF}) ->
 
 handle_cast(phantom, Data = #pd{playing = Game, playing_sn = SN}) ->
   {ok, Phantom} = op_phantom:start_link(Data#pd.pid, Game, SN),
-  {noreply, Data#pd{client = ?UNDEF, phantom = Phantom}}.
+  {noreply, Data#pd{client = ?UNDEF, phantom = Phantom}};
+
+handle_cast(Msg, Data) ->
+  error_logger:error_report([{player_unknown_cast, Msg}, {state, Data}]),
+  {noreply, Data}.
 
 handle_call(ctx, _From, Data) ->
   {reply, Data, Data};

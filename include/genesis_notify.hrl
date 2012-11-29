@@ -46,7 +46,7 @@
 -record(notify_seat,          { game, sn, state, player, inplay, bet, nick, photo }).
 
 -define(NOTIFY_ACTOR,         116).
--record(notify_actor,         { game, player, sn }).  
+-record(notify_actor,         { game, player, sn, timeout }).  
 
 -define(NOTIFY_BETTING,       117).
 -record(notify_betting,       { game, player, sn, call, min, max }).

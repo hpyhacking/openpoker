@@ -111,7 +111,7 @@ ask_for_bet(H = #seat{}, Ctx = #texas{limit = Limit}, {?ZERO, Inplay}) ->
 ask_for_bet(H = #seat{sn = SN, pid = PID}, Ctx = #texas{gid = Id}, {Min, Inplay}) ->
   ExpAmt = Ctx#texas.max_betting - H#seat.bet,
   Max = Inplay - ExpAmt,
-  game:broadcast(#notify_actor{ game = Id, sn = SN }, Ctx),
+  game:broadcast(#notify_actor{ game = Id, player = PID, sn = SN, timeout = Ctx#texas.timeout }, Ctx),
   player:notify(H#seat.process, #notify_betting{ game = Id, player = PID, sn = SN, call = ExpAmt, min = Min, max = Max}),
 
   TimerCtx = start_timer(Ctx),
