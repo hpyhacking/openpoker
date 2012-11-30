@@ -77,9 +77,10 @@ handle_cast(#cmd_query_player{}, Data = #pd{}) ->
   },
   handle_cast({notify, R}, Data);
 
-handle_cast(#cmd_query_balance{}, Data) ->
-  R = #notify_acount{ balance = 0, inplay = 0 },
-  handle_cast({notify, R}, Data);
+handle_cast(#cmd_query_balance{}, Data = #pd{record = R, inplay = Inplay}) ->
+  Balance = R#tab_player_info.cash + R#tab_player_info.credit,
+  N = #notify_acount{ balance = Balance, inplay = Inplay },
+  handle_cast({notify, N}, Data);
 
 handle_cast(#cmd_query_seats{game = Game}, Data) ->
   game:query_seats(Game),
