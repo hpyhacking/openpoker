@@ -1,4 +1,4 @@
-# Genesis Texas hold'em Game Server & Client
+# OpenPoker Texas hold'em Game Server & Client
 #### This project is based on [wagerlabs/openpoker](https://github.com/wagerlabs/openpoker), but I modified almost all of the code:
 
 - Except distributed, I do not care about this.
@@ -18,4 +18,4 @@
 
 # License
 
-Genesis is released under a Creative Commons NonCommercial Licence.
+OpenPoker is released under a Creative Commons NonCommercial Licence.
