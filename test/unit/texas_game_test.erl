@@ -1,6 +1,6 @@
 -module(texas_game_test).
--include("genesis.hrl").
--include("genesis_test.hrl").
+-include("openpoker.hrl").
+-include("openpoker_test.hrl").
 
 start_test_() -> {setup, fun setup/0, fun sim:clean/1, fun () ->
         ?assert(is_pid(?LOOKUP_GAME(1))),

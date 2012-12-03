@@ -1,7 +1,7 @@
 -module(client).
 -export([loop/2, send/1, send/2]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 -record(pdata, { 
     timer = ?UNDEF, 
@@ -76,10 +76,10 @@ loop({msg, {timeout, _, ?MODULE}}, _Data) ->
 %%%
 
 send(R) ->
-  genesis_game_handler:send(R).
+  op_game_handler:send(R).
 
 send(PID, R) when is_pid(PID), is_tuple(R) ->
-  genesis_game_handler:send(PID, R).
+  op_game_handler:send(PID, R).
 
 %%%
 %%% private

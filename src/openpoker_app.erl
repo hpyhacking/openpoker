@@ -1,4 +1,4 @@
--module(genesis_app).
+-module(openpoker_app).
 
 -behaviour(application).
 
@@ -21,7 +21,7 @@ start(_StartType, _StartArgs) ->
       ok
   end,
 
-  genesis_sup:start_link().
+  op_sup:start_link().
 
 stop(_State) ->
   ok.

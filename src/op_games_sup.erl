@@ -1,4 +1,4 @@
--module(genesis_games_sup).
+-module(op_games_sup).
 -behaviour(supervisor).
 
 %% API
@@ -7,7 +7,7 @@
 %% Supervisor callbacks
 -export([init/1]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 %% ===================================================================
 %% API functions

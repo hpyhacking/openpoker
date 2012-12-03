@@ -1,4 +1,4 @@
--module(genesis_players_sup).
+-module(op_players_sup).
 -behaviour(supervisor).
 
 %% API
@@ -7,7 +7,7 @@
 %% Supervisor callbacks
 -export([init/1]).
 
--include("genesis_schema.hrl").
+-include("openpoker.hrl").
 
 %% Helper macro for declaring children of supervisor
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).

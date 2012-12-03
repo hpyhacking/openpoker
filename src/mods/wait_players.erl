@@ -2,7 +2,7 @@
 -behaviour(op_exch_mod).
 -export([start/2, dispatch/2, wait_for_players/2]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 start(_Params, Ctx = #texas{start_delay = 0}) ->
   wait_for_players({timeout, ?UNDEF, ?MODULE}, Ctx);

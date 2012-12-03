@@ -105,11 +105,11 @@ def parse_wr file
   end
 end
 
-parse_def "include/genesis_protocol.hrl"
-parse_def "include/genesis_notify.hrl"
+parse_def "include/openpoker_protocol.hrl"
+parse_def "include/openpoker_notify.hrl"
 
-parse_wr "include/genesis_protocol.hrl"
-parse_wr "include/genesis_notify.hrl"
+parse_wr "include/openpoker_protocol.hrl"
+parse_wr "include/openpoker_notify.hrl"
 
 puts "# AUTO GENERATE, DONT EDIT!!!\n"
 puts DEF_OUT

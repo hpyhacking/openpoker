@@ -2,7 +2,7 @@
 -behaviour(op_exch_mod).
 -export([start/2, dispatch/2, suspend/2]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 start([], Ctx) ->
   erlang:start_timer(10 * 1000, self(), ?MODULE),

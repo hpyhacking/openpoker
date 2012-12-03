@@ -11,7 +11,7 @@
          tuple/1, record/2, binary/1, wstring/0]).
 -export([string/0]).
 
--include("genesis_common.hrl").
+-include("openpoker.hrl").
 
 %%% Pickle and unpickle. We accumulate into a list.
 

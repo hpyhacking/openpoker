@@ -2,7 +2,7 @@
 -behaviour(op_exch_mod).
 -export([start/2, dispatch/2]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 start([], Ctx) ->
   ResetCtx= Ctx#texas{

@@ -4,7 +4,7 @@
 -export([make_card/1, make_card/2, make_cards/1, print_bin/1, 
          print_rep/1, to_string/1, player_hand/1, card_to_string/1]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 new() -> new([]).
 new(Cards) -> #hand{ cards = Cards }.

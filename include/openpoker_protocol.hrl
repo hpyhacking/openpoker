@@ -49,4 +49,4 @@
 -define(CMD_OUT,              38).
 -record(cmd_out,              { game, sn, buyin, '|', pid, proc }).
 
--include("genesis_notify.hrl").
+-include("openpoker_notify.hrl").

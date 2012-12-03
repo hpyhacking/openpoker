@@ -1,7 +1,7 @@
 -module(rig).
 -export([start/2, dispatch/2]).
 
--include("genesis_game.hrl").
+-include("openpoker.hrl").
 
 start([Cards], Ctx) when is_list(Cards) ->
   {stop, Ctx#texas{deck = deck:new(Cards)}};

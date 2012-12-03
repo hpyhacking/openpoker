@@ -1,4 +1,4 @@
--module(genesis_webtekcos_event_logger).
+-module(op_webtekcos_event_logger).
 
 -behaviour(gen_event).
 

@@ -1,7 +1,7 @@
 -module(mod_betting_headsup_test).
 
--include("genesis.hrl").
--include("genesis_test.hrl").
+-include("openpoker.hrl").
+-include("openpoker.hrl").
 
 -define(TWO_PLAYERS, [{?JACK, ?JACK_ID}, {?TOMMY, ?TOMMY_ID}]).
 

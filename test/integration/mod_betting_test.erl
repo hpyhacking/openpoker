@@ -1,7 +1,7 @@
 -module(mod_betting_test).
 
--include("genesis.hrl").
--include("genesis_test.hrl").
+-include("openpoker.hrl").
+-include("openpoker_test.hrl").
 
 -define(TWO_PLAYERS, [{?JACK, ?JACK_ID}, {?TOMMY, ?TOMMY_ID}]).
 -define(THREE_PLAYERS, ?TWO_PLAYERS ++ [{?FOO, ?FOO_ID}]).

@@ -1,11 +1,11 @@
--module(genesis_game_handler).
+-module(op_game_handler).
 -behaviour(webtekcos).
 
 -export([connect/0, connect/1, disconnect/1, handle_message/2, handle_data/2]).
 
 -export([send/1, send/2]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 -record(pdata, { 
     connection_timer = ?UNDEF, 
@@ -67,7 +67,7 @@ handle_protocol(#cmd_login{identity = Identity, password = Password}, LoopData) 
     {ok, pass, Info} ->
       % create player process by client process, 
       % receive {'EXIT'} when player process error
-      case genesis_players_sup:start_child(Info) of
+      case op_players_sup:start_child(Info) of
         {ok, Player} ->
           player:client(Player),
           player:info(Player),
@@ -84,7 +84,7 @@ handle_protocol(#cmd_login{identity = Identity, password = Password}, LoopData) 
   end;
 
 handle_protocol(#cmd_logout{}, #pdata{player = Player, player_info = Info}) when is_pid(Player) ->
-  genesis_players_sup:terminate_child(Info#tab_player_info.pid),
+  op_players_sup:terminate_child(Info#tab_player_info.pid),
   webtekcos:close();
 
 handle_protocol(#cmd_query_game{}, LoopData = #pdata{player = Player}) when is_pid(Player) -> 

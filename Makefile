@@ -36,6 +36,6 @@ generate:
 	./priv/generate_client_protocol.sh
 
 console:
-	rm -rf rel/genesis/Mnesia*
+	rm -rf rel/openpoker/Mnesia*
 	rebar compile generate
-	./rel/genesis/bin/genesis console
+	./rel/openpoker/bin/openpoker console

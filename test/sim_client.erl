@@ -8,16 +8,16 @@
 %% 通过启动一个进程，模拟对网络链接的双向请求，
 %% 提供单元测试一种模拟客户端的机制。
 
-%% 由于使用webtekcos提供的wesocket链接，通过genesis_game模块
+%% 由于使用webtekcos提供的wesocket链接，通过op_game模块
 %% 处理客户端与服务器间通信的各种消息。sim_client启动后同样模拟
-%% webtekcos的消息层，将各种消息同样发到genesis_game模块进行处理
+%% webtekcos的消息层，将各种消息同样发到op_game模块进行处理
 %% 以达到Mock的效果。同时sim_client为测试程序提供了一些格外的接口
 %% 以检查通信进程内部进程数据的正确性。
 
 %% sim_client采用erlang最基本的消息元语进行编写。
 
--include("genesis.hrl").
--include("genesis_test.hrl").
+-include("openpoker.hrl").
+-include("openpoker_test.hrl").
 
 -record(pdata, { box = [], host = ?UNDEF, timeout = 2000 }).
 
@@ -28,7 +28,7 @@
 start(Key, Timeout) ->
   ?assert(undefined =:= whereis(Key)),
   PD = #pdata{host = self(), timeout = Timeout},
-  PID = spawn(?MODULE, loop, [genesis_game_handler, ?UNDEF, PD]),
+  PID = spawn(?MODULE, loop, [op_game_handler, ?UNDEF, PD]),
   ?assert(true =:= register(Key, PID)),
   PID.
 

@@ -1,6 +1,5 @@
 .eunit
 deps
-priv
 *.o
 *.beam
 *.plt
@@ -9,5 +8,5 @@ log
 Mnesia*
 *.dump
 
-rel/genesis/
+rel/openpoker/
 rel/log/

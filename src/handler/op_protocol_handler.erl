@@ -1,8 +1,8 @@
--module(genesis_protocol_handler).
+-module(op_protocol_handler).
 -export([connect/0, disconnect/1, handle_message/2, handle_data/2]).
 -export([loop/0]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 connect() -> 
   console(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"),
@@ -11,7 +11,7 @@ connect() ->
 disconnect(_) ->
   console("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<").
 
-handle_message(Msg, _LoopData) -> console([genesis_protocol_msg, Msg]).
+handle_message(Msg, _LoopData) -> console([op_protocol_msg, Msg]).
 
 handle_data(Data, _LoopData) when is_list(Data) ->
   Bin = base64:decode(list_to_binary(Data)),

@@ -2,7 +2,7 @@
 -behaviour(op_exch_mod).
 -export([start/2, dispatch/2, betting/2]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 -define(ZERO, 0).
 

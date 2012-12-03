@@ -1,7 +1,7 @@
 -module(mod_blinds_test).
 
--include("genesis.hrl").
--include("genesis_test.hrl").
+-include("openpoker.hrl").
+-include("openpoker_test.hrl").
 
 -define(TWO_PLAYERS, [{?JACK, ?JACK_ID}, {?TOMMY, ?TOMMY_ID}]).
 -define(THREE_PLAYERS, ?TWO_PLAYERS ++ [{?FOO, ?FOO_ID}]).
@@ -58,7 +58,7 @@ setup_empty() ->
 
 setup(MixinMods) ->
   sim:setup(),
-  genesis_games_sup:start_child(
+  op_games_sup:start_child(
     #tab_game_config{
       module = game, seat_count = 9, required = 2,
       limit = #limit{min = 100, max = 500, small = 5, big = 10},

@@ -12,7 +12,7 @@
 
 -export([fold/2, leave/2, phantom/1]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 -record(pd, { %% process data
     pid,
@@ -114,7 +114,7 @@ handle_cast(logout, Data = #pd{playing = ?UNDEF}) ->
   {noreply, Data};
 
 handle_cast(phantom, Data = #pd{playing = ?UNDEF}) ->
-  genesis_players_sup:terminate_child_ex(Data#pd.pid),
+  op_players_sup:terminate_child_ex(Data#pd.pid),
   {noreply, Data#pd{client = ?UNDEF, phantom = ?UNDEF}};
 
 handle_cast(phantom, Data = #pd{playing = Game, playing_sn = SN}) ->
@@ -247,4 +247,4 @@ create_runtime(PID, Process) when is_number(PID), is_pid(Process) ->
 forward_to_client(R, #pd{client = ?UNDEF, phantom = P}) when is_pid(P) -> 
   op_phantom:send(P, R);
 forward_to_client(R, #pd{client = C, phantom = ?UNDEF}) when is_pid(C) -> 
-  genesis_game_handler:send(C, R).
+  op_game_handler:send(C, R).

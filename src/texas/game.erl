@@ -7,7 +7,7 @@
 -export([reward/3, query_seats/1, list/0, raise/2, fold/2]).
 -export([broadcast/2, broadcast/3, info/1]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 %%%
 %%% callback
@@ -282,7 +282,7 @@ list() ->
   Result.
 
 info(Game) ->
-  State = genesis_common:get_status(Game),
+  State = op_common:get_status(Game),
   get_notify_game(State#exch.ctx).
 
 %%%

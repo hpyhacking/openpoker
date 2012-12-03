@@ -1,9 +1,7 @@
 -module(schema).
 -export([rebuild_schema/0, rebuild_core/0, rebuild_core_and_data/0]).
 
--include("genesis_game.hrl").
--include("genesis_common.hrl").
--include("genesis_schema.hrl").
+-include("openpoker.hrl").
 
 -define(RAM, {ram_copies, Nodes}).
 -define(DISC, {disc_copies, Nodes}).

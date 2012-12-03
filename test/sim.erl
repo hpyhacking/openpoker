@@ -1,8 +1,8 @@
 -module(sim).
 -compile([export_all]).
 
--include("genesis.hrl").
--include("genesis_test.hrl").
+-include("openpoker.hrl").
+-include("openpoker_test.hrl").
 
 join_and_start_game(Players) ->
   join_and_start_game(Players, 1),
@@ -185,7 +185,7 @@ setup() ->
   error_logger:tty(false),
   application:start(sasl),
   setup_schema(),
-  ?assertMatch(ok, application:start(genesis)),
+  ?assertMatch(ok, application:start(openpoker)),
   setup_players(?PLAYERS),
   error_logger:tty(true).
 
@@ -217,13 +217,13 @@ setup_players(L) when is_list(L) ->
 
 clean(_) ->
   error_logger:tty(false),
-  ?assert(ok =:= application:stop(genesis)).
+  ?assert(ok =:= application:stop(openpoker)).
 
 go_go_go() ->
   gen_server:cast(?GAME_NAME(?GAME), go_go_go).
 
 get_status(Name) ->
-  genesis_common:get_status(Name).
+  op_common:get_status(Name).
 
 game_state(GID) ->
   State = get_status(?GAME_NAME(GID)),
@@ -240,4 +240,4 @@ player_state(PID) ->
   get_status(?PLAYER(PID)).
 
 setup_game(Conf) ->
-  genesis_games_sup:start_child(Conf).
+  op_games_sup:start_child(Conf).

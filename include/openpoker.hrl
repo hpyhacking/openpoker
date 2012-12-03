@@ -1,0 +1,4 @@
+-include("openpoker_common.hrl").
+-include("openpoker_game.hrl").
+-include("openpoker_protocol.hrl").
+-include("openpoker_schema.hrl").

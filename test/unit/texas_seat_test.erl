@@ -1,8 +1,8 @@
 -module(texas_seat_test).
 -compile([export_all]).
 
--include("genesis_common.hrl").
--include("genesis_game.hrl").
+-include("openpoker.hrl").
+-include("openpoker_test.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 new_test() ->

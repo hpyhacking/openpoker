@@ -6,7 +6,7 @@
          handle_info/2, terminate/2, code_change/3]).
 -export([start_link/3, stop/1, stop/2, cast/2, call/2]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 behaviour_info(callbacks) -> [
     {id, 0}, 

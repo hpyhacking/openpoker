@@ -4,7 +4,7 @@
 -export([start_link/3]).
 -export([init/1, terminate/2, handle_call/3, handle_cast/2, code_change/3, handle_info/2]).
 -export([send/2]).
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 %%
 %% Client API
@@ -49,7 +49,7 @@ handle_cast(#notify_game_end{}, LoopData = #pd {pid = PID, gid = GID}) ->
 handle_cast(#notify_leave{sn = SN}, LoopData = #pd{pid = PID, sn = SN}) ->
   op_exch_event:phantom([{player_leave, PID}]),
   %% TODO better process player, don't kill process
-  genesis_players_sup:terminate_child_ex(PID),
+  op_players_sup:terminate_child_ex(PID),
   op_exch_event:phantom([{terminate_child, PID}]),
   {noreply, LoopData};
   

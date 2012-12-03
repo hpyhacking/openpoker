@@ -3,7 +3,7 @@
 -export([start/2, dispatch/2]).
 -export([rank/1, notify/1]).
 
--include("genesis.hrl").
+-include("openpoker.hrl").
 
 %%%
 %%% callback

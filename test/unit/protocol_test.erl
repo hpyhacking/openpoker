@@ -1,7 +1,7 @@
 -module(protocol_test).
 -import(protocol, [write/1, read/1]).
--include("genesis.hrl").
--include("genesis_test.hrl").
+-include("openpoker.hrl").
+-include("openpoker_test.hrl").
 
 -define(REG_GAME, {game, 1}).
 -define(REG_PLAYER, {player, 1}).

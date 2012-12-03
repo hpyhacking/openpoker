@@ -1,9 +1,10 @@
 -module(op_exch_event_logger).
--include("genesis.hrl").
 -behaviour(gen_event).
 -export([add_handler/1, delete_handler/0]).
 -export([init/1, handle_event/2, handle_call/2,
          handle_info/2, code_change/3, terminate/2]).
+
+-include("openpoker.hrl").
 
 add_handler(GID) when is_integer(GID) ->
   op_exch_event:add_handler(?MODULE, [?LOOKUP_GAME(GID)]);
