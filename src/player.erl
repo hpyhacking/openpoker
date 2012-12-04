@@ -235,10 +235,10 @@ phantom(PID) when is_pid(PID) ->
 %%%
 
 reload_player_info(PId) ->
-  {atomic, R} = mnesia:transaction(fun() ->
-        [Info] = mnesia:read(tab_player_info, PId),
-        Info
-    end),
+  ReloadFun = fun() ->
+      mnesia:read(tab_player_info, PId)
+  end,
+  {atomic, [R]} = mnesia:transaction(ReloadFun),
   R.
 
 create_runtime(PID, Process) when is_number(PID), is_pid(Process) ->

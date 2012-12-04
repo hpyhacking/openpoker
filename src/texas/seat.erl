@@ -1,5 +1,5 @@
 -module(seat).
--export([new/1, set/2, set/3, get/1, get/2, lookup/2, lookup/3, info/2]).
+-export([new/1, set/2, set/3, get/1, get/2, lookup/2, lookup/3, info/2, clear/2]).
 
 -include("openpoker.hrl").
 
@@ -24,17 +24,24 @@ get(Seats) ->
 get(SN, Seats) when is_tuple(Seats), SN >= 1, SN =< size(Seats) -> element(SN, Seats);
 get(_SN, _Seats) -> ?UNDEF.
 
-set(#seat{sn = SN}, State, Seats) -> set(SN, State, Seats);
+set(#seat{sn = SN}, State, Seats) ->
+  set(SN, State, Seats);
+
 set(SN, State, Seats) when is_integer(SN) ->
   S = element(SN, Seats),
   setelement(SN, Seats, S#seat{state = State});
 
-set([], _State, Seats) -> Seats;
+set([], _State, Seats) ->
+  Seats;
+
 set([#seat{sn = SN}|T], State, Seats) -> 
   set(T, State, set(SN, State, Seats)).
 
 info(size, Seats) ->
   size(Seats).
+
+clear(SN, Seats) ->
+  setelement(SN, Seats, #seat{sn = SN, state = ?PS_EMPTY}).
 
 %%%
 %%% private

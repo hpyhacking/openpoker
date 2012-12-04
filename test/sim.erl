@@ -178,8 +178,8 @@ turnover_player_leave({Actor, Players}, {Call, Min, Max}) ->
   sim:check_notify_actor(SN, Players),
   ?assertMatch(#notify_betting{call = Call, min = Min, max = Max}, sim_client:head(Actor)),
   sim_client:send(Actor, #cmd_leave{game = ?GAME}),
-  sim:check_notify_leave(Actor, Players),
-  sim:check_notify_fold(SN, proplists:delete(Actor, Players)).
+  sim:check_notify_fold(SN, Players),
+  sim:check_notify_leave(Actor, Players).
 
 setup() ->
   error_logger:tty(false),

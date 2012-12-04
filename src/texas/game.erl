@@ -5,6 +5,7 @@
 -export([start/0, start/1, start_conf/2, config/0]).
 -export([watch/2, unwatch/2, join/2, leave/2, bet/2]).
 -export([reward/3, query_seats/1, list/0, raise/2, fold/2]).
+-export([do_leave/2, start_timer/2, cancel_timer/1]).
 -export([broadcast/2, broadcast/3, info/1]).
 
 -include("openpoker.hrl").
@@ -92,59 +93,8 @@ dispatch(R = #cmd_join{sn = SN}, Ctx = #texas{seats = Seats}) when SN =:= 0 ->
   [H = #seat{}|_] = seat:lookup(?PS_EMPTY, Seats),
   do_join(R, H, Ctx);
   
-dispatch(R = #cmd_leave{sn = SN, pid = PId}, Ctx = #texas{exp_seat = Exp, seats = Seats}) ->
-  case seat:get(SN, Seats) of
-    #seat{pid = PId} ->
-      Fun = fun() -> 
-          [Info] = mnesia:read(tab_player_info, PId, write),
-          [Inplay] = mnesia:read(tab_inplay, PId, write),
-
-          case Inplay#tab_inplay.inplay < 0 of
-            true ->
-              exit(err_inplay_less_zero);
-            _ ->
-              ok
-          end,
-
-          ok = mnesia:delete_object(Inplay),
-          ok = mnesia:write(#tab_buyin_log{
-              pid = R#cmd_leave.pid, gid = Ctx#texas.gid, 
-              amt = Inplay#tab_inplay.inplay, cash = Info#tab_player_info.cash + Inplay#tab_inplay.inplay,
-              credit = Info#tab_player_info.credit}),
-          ok = mnesia:write(Info#tab_player_info{cash = Info#tab_player_info.cash + Inplay#tab_inplay.inplay})
-      end,
-
-      case mnesia:transaction(Fun) of
-        {atomic, ok} ->
-          LeaveMsg = #notify_leave{
-            game = Ctx#texas.gid,
-            sn = SN, player = PId,
-            proc = self()
-          },
-
-          %% 目前还不清楚当玩家离开时设置PS_EMPTY会对后面的结算有什么影响。
-          %% 但当收到cmd_leave请求时确实应该将其状态设置为EMPTY而不是什么LEAVE。
-          %% 或者说还不太清楚LEAVE这个状态到底代表什么意思。
-
-          LeavedExp = case Exp of
-            #seat{pid = P} when P =:= PId ->
-              game:fold(self(), #cmd_fold{pid = PId}),
-              Exp#seat{state = ?PS_EMPTY};
-            _ ->
-              Exp
-          end,
-
-          broadcast(LeaveMsg, Ctx),
-          LeavedSeats = seat:set(SN, ?PS_EMPTY, Seats),
-          Ctx#texas{seats = LeavedSeats, joined = Ctx#texas.joined - 1, exp_seat = LeavedExp};
-        {aborted, Err} ->
-          ?LOG([{game, error}, {leave, R}, {ctx, Ctx}, {error, Err}]),
-          Ctx
-      end;
-    _ ->
-      ?LOG([{game, error}, {leave, R}, {ctx, Ctx}, {error, not_find_player}]),
-      Ctx
-  end;
+dispatch(R = #cmd_leave{}, Ctx = #texas{}) ->
+  do_leave(R, Ctx);
 
 dispatch({query_seats, Player}, Ctx) when is_pid(Player)->
   notify_player_seats(Player, Ctx).
@@ -284,6 +234,51 @@ list() ->
 info(Game) ->
   State = op_common:get_status(Game),
   get_notify_game(State#exch.ctx).
+
+start_timer(Ctx = #texas{timeout = Timeout}, Msg) ->
+  Timer = erlang:start_timer(Timeout, self(), Msg),
+  Ctx#texas{timer = Timer}.
+
+cancel_timer(Ctx = #texas{timer = T}) ->
+  catch erlang:cancel_timer(T),
+  Ctx#texas{timer = ?UNDEF}.
+
+do_leave(R = #cmd_leave{sn = SN, pid = PId}, Ctx = #texas{seats = Seats}) ->
+  #seat{pid = PId} = seat:get(SN, Seats),
+    
+  DoLeaveFun = fun() -> 
+      [Info] = mnesia:read(tab_player_info, PId, write),
+      [Inplay] = mnesia:read(tab_inplay, PId, write),
+
+      true = Inplay#tab_inplay.inplay >= 0,
+
+      NewCash = Info#tab_player_info.cash + Inplay#tab_inplay.inplay,
+
+      ok = mnesia:write(#tab_buyin_log{
+          gid = Ctx#texas.gid, 
+          pid = R#cmd_leave.pid, 
+          amt = Inplay#tab_inplay.inplay,
+          cash = NewCash,
+          credit = Info#tab_player_info.credit}),
+      ok = mnesia:write(Info#tab_player_info{cash = NewCash}),
+      ok = mnesia:delete_object(Inplay)
+  end,
+
+  {atomic, ok} = mnesia:transaction(DoLeaveFun),
+
+  LeaveMsg = #notify_leave{
+    sn = SN, 
+    player = PId,
+    game = Ctx#texas.gid,
+    proc = self()},
+  broadcast(LeaveMsg, Ctx),
+
+  %% 目前还不清楚当玩家离开时设置PS_EMPTY会对后面的结算有什么影响。
+  %% 但当收到cmd_leave请求时确实应该将其状态设置为EMPTY而不是什么LEAVE。
+  %% 或者说还不太清楚LEAVE这个状态到底代表什么意思。
+
+  LeavedSeats = seat:clear(SN, Seats),
+  Ctx#texas{seats = LeavedSeats, joined = Ctx#texas.joined - 1}.
 
 %%%
 %%% private
