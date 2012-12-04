@@ -13,8 +13,9 @@
 -define(PLAYER(Id), {global, {player, Id}}).
 -define(LOOKUP_PLAYER(Id), global:whereis_name({player, Id})).
 
+-define(HASH_PWD(Password), erlang:phash2(Password, 1 bsl 32)).
 -define(DEF_PWD, "def_pwd").
--define(DEF_HASH_PWD, erlang:phash2(?DEF_PWD, 1 bsl 32)).
+-define(DEF_HASH_PWD, ?HASH_PWD(?DEF_PWD)).
 
 -record(exch, {
     id,
