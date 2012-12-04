@@ -86,19 +86,19 @@
     %% blind rules
     {blinds, []},
     %% deal 2 cards to each player
-    {deal_cards, [2, private]}, 
+    {deal_cards, [2, private, 500]}, 
     {ranking, []}, 
     %% start after BB, 3 raises
     {op_mod_betting, [?GS_PREFLOP]}, 
-    {deal_cards, [3, shared]}, 
+    {deal_cards, [3, shared, 500]}, 
     {ranking, []}, 
     %% flop
     {op_mod_betting, [?GS_FLOP]}, 
-    {deal_cards, [1, shared]}, 
+    {deal_cards, [1, shared, 500]}, 
     {ranking, []}, 
     %% turn
     {op_mod_betting, [?GS_TURN]}, 
-    {deal_cards, [1, shared]}, 
+    {deal_cards, [1, shared, 500]}, 
     {ranking, []}, 
     %% river
     {op_mod_betting, [?GS_RIVER]}, 
@@ -164,5 +164,6 @@
     exp_max = 0,                %% expecting raise max amount
     stage = ?GS_CANCEL,
     winners = [],               %% last winners
-    timer = ?GAME_UNDEF
+    timer = ?GAME_UNDEF,
+    deal_timeout = 0
   }).
