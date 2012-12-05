@@ -90,5 +90,5 @@ setup_test_players(100) ->
 setup_test_players(N) ->
   Nick = string:concat("TEST ", integer_to_list(N)),
   Identity = string:concat("tester_", integer_to_list(N)),
-  mnesia:dirty_write(#tab_player_info{pid = N, identity = Identity, password = ?HASH_PWD(Identity), nick = Nick, photo = "default.png", cash = 100000}),
+  mnesia:dirty_write(#tab_player_info{pid = N, identity = Identity, password = ?HASH_PWD("pwd"), nick = Nick, photo = "default.png", cash = 100000}),
   setup_test_players(N - 1).
