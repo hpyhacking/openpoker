@@ -129,6 +129,39 @@ check_deal() ->
   ?assertMatch(#notify_draw{game = ?GAME, player = ?JACK_ID}, sim_client:head(?TOMMY)),
   ?assertMatch(#notify_private{game = ?GAME, player = ?JACK_ID}, sim_client:head(?JACK)).
 
+three_check_deal() ->
+  %% Tommy is left button player, first deal card.
+  %% Button is last deal card player, in this is Jack.
+
+  %% tommy first card
+  ?assertMatch(#notify_draw{game = ?GAME, player = ?TOMMY_ID}, sim_client:head(?JACK)),
+  ?assertMatch(#notify_draw{game = ?GAME, player = ?TOMMY_ID}, sim_client:head(?FOO)),
+  ?assertMatch(#notify_private{game = ?GAME, player = ?TOMMY_ID}, sim_client:head(?TOMMY)),
+
+  %% foo first card
+  ?assertMatch(#notify_draw{game = ?GAME, player = ?FOO_ID}, sim_client:head(?JACK)),
+  ?assertMatch(#notify_draw{game = ?GAME, player = ?FOO_ID}, sim_client:head(?TOMMY)),
+  ?assertMatch(#notify_private{game = ?GAME, player = ?FOO_ID}, sim_client:head(?FOO)),
+
+  %% jack first card
+  ?assertMatch(#notify_draw{game = ?GAME, player = ?JACK_ID}, sim_client:head(?TOMMY)),
+  ?assertMatch(#notify_draw{game = ?GAME, player = ?JACK_ID}, sim_client:head(?FOO)),
+  ?assertMatch(#notify_private{game = ?GAME, player = ?JACK_ID}, sim_client:head(?JACK)),
+
+  %% tommy second card
+  ?assertMatch(#notify_draw{game = ?GAME, player = ?TOMMY_ID}, sim_client:head(?JACK)),
+  ?assertMatch(#notify_draw{game = ?GAME, player = ?TOMMY_ID}, sim_client:head(?FOO)),
+  ?assertMatch(#notify_private{game = ?GAME, player = ?TOMMY_ID}, sim_client:head(?TOMMY)),
+
+  %% foo second card
+  ?assertMatch(#notify_draw{game = ?GAME, player = ?FOO_ID}, sim_client:head(?JACK)),
+  ?assertMatch(#notify_draw{game = ?GAME, player = ?FOO_ID}, sim_client:head(?TOMMY)),
+  ?assertMatch(#notify_private{game = ?GAME, player = ?FOO_ID}, sim_client:head(?FOO)),
+
+  %% jack second card
+  ?assertMatch(#notify_draw{game = ?GAME, player = ?JACK_ID}, sim_client:head(?TOMMY)),
+  ?assertMatch(#notify_draw{game = ?GAME, player = ?JACK_ID}, sim_client:head(?FOO)),
+  ?assertMatch(#notify_private{game = ?GAME, player = ?JACK_ID}, sim_client:head(?JACK)).
 check_shared(N, Players) ->
   check_shared(N, N, Players).
 

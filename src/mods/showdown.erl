@@ -12,7 +12,9 @@ start([], Ctx = #texas{gid = Id, seats = S, pot = P}) ->
   RankedSeats = ranking:rank(Ctx),
   Winners = winners(RankedSeats, pot:pots(P)),
 
-  show_cards(seat:lookup(?PS_ANY, S), Ctx),
+  ShowCardSeats = seat:lookup(?PS_STANDING, S),
+  show_cards(ShowCardSeats, Ctx),
+
   broadcast_ranks(RankedSeats, Ctx),
 
   RewardedCtx = reward_winners(Winners, Ctx),
@@ -31,9 +33,24 @@ dispatch(_R, _Ctx) ->
 %%%
 
 show_cards([], _Ctx) -> ok;
-show_cards([#seat{pid = PId, identity = Identity, hand = Hand, sn = SN}|T], Ctx = #texas{gid = Id}) ->
+show_cards([_H], _Ctx) -> ok;
+show_cards(L = [_H|_T], Ctx) -> do_show_cards(L, Ctx).
+
+do_show_cards([], _Ctx) -> ok;
+do_show_cards([#seat{pid = PId, identity = Identity, hand = Hand, sn = SN}|T], Ctx = #texas{gid = Id}) ->
   game:broadcast(#notify_cards{ game = Id, player = PId, sn = SN, cards = Hand#hand.cards}, Ctx, [Identity]),
-  show_cards(T, Ctx).
+  do_show_cards(T, Ctx).
+
+
+broadcast_ranks([], _Ctx) -> ok;
+broadcast_ranks([_H], _Ctx) -> ok;
+broadcast_ranks(L = [_H|_T], Ctx) -> do_broadcast_ranks(L, Ctx).
+
+do_broadcast_ranks([], _Ctx) -> ok;
+do_broadcast_ranks([#seat{pid = PId, hand = Hand, sn = SN}|T], Ctx = #texas{gid = Id}) ->
+  #player_hand{rank = Rank, high1 = H1, high2 = H2, suit = Suit} = hand:player_hand(Hand),
+  game:broadcast(#notify_hand{ player = PId, sn = SN, game = Id, rank = Rank, high1 = H1, high2 = H2, suit = Suit}, Ctx),
+  do_broadcast_ranks(T, Ctx).
 
 reward_winners([], Ctx) -> Ctx;
 reward_winners([{H = #hand{}, Amt}|T], Ctx) -> 
@@ -47,11 +64,7 @@ when L#limit.big > Inplay ->
 kick_poor_players([_|T], Ctx = #texas{}) ->
   kick_poor_players(T, Ctx).
       
-broadcast_ranks([], _Ctx) -> ok;
-broadcast_ranks([#seat{pid = PId, hand = Hand, sn = SN}|T], Ctx = #texas{gid = Id}) ->
-  #player_hand{rank = Rank, high1 = H1, high2 = H2, suit = Suit} = hand:player_hand(Hand),
-  game:broadcast(#notify_hand{ player = PId, sn = SN, game = Id, rank = Rank, high1 = H1, high2 = H2, suit = Suit}, Ctx),
-  broadcast_ranks(T, Ctx).
+
 
 %% fuck code is here, winners comput to depend on record field position
 %% e.g lists:keysort(5, M) is sort by hand record five point field rank

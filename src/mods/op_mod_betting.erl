@@ -100,6 +100,8 @@ betting(_Msg, Ctx) ->
 
 ask(At = #seat{}, Ctx = #texas{seats = S}) ->
   ask(seat:lookup(?PS_PLAY, S, At), Ctx);
+ask([], Ctx = #texas{}) ->
+  {stop, Ctx};
 ask([_H], Ctx = #texas{}) ->
   {stop, Ctx};
 ask([H|_], Ctx = #texas{}) ->

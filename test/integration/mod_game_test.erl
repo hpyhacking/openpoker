@@ -3,6 +3,7 @@
 -include("openpoker_test.hrl").
 
 -define(TWO_PLAYERS, [{?JACK, ?JACK_ID}, {?TOMMY, ?TOMMY_ID}]).
+-define(THREE_PLAYERS, [{?JACK, ?JACK_ID}, {?TOMMY, ?TOMMY_ID}, {?FOO, ?FOO_ID}]).
 
 rank_test_() -> {setup, fun setup_with_rank/0, fun sim:clean/1, fun () ->
         Players = ?TWO_PLAYERS,
@@ -13,6 +14,30 @@ rank_test_() -> {setup, fun setup_with_rank/0, fun sim:clean/1, fun () ->
         sim:check_shared(1, Players),
         ?assertMatch(#notify_hand{rank = ?HC_PAIR, high1 = ?CF_FOUR}, sim_client:head(?JACK)),
         ?assertMatch(#notify_hand{rank = ?HC_THREE_KIND, high1 = ?CF_THREE}, sim_client:head(?TOMMY))
+    end}.
+
+two_players_fold_shutdown_test_() -> {setup, fun setup_with_shutdown/0, fun sim:clean/1, fun () ->
+        Players = ?TWO_PLAYERS,
+        sim:join_and_start_game(Players),
+
+        sim:check_blind_only_raise(Players, 1, 1, 2),
+        sim:check_deal(),
+        sim:check_shared(3, Players),
+
+        %% CHECK NOTIFY RANK
+        ?assertMatch(#notify_hand{rank = ?HC_FOUR_KIND, high1 = ?CF_FOUR}, sim_client:head(?JACK)),
+        ?assertMatch(#notify_hand{rank = ?HC_FULL_HOUSE, high1 = ?CF_THREE, high2 = ?CF_FOUR}, sim_client:head(?TOMMY)),
+
+
+        %% betting
+        sim:check_notify_stage(?GS_PREFLOP, Players),
+        sim:turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
+        sim:turnover_player_fold ({?TOMMY, Players}, {0, 20, 80}),
+        sim:check_notify_stage_end(?GS_PREFLOP, Players),
+
+        %% Only one player, don't notify hand and rank protocol.
+
+        sim:check_notify_win(?JACK_ID, 40, Players)
     end}.
 
 shutdown_test_() -> {setup, fun setup_with_shutdown/0, fun sim:clean/1, fun () ->
