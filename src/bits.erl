@@ -6,10 +6,12 @@
 %% number of bits set
 %% bits0 works on arbitrary integers.
 
-bits0(N) when N >= 0-> bits0(N, 0).
+bits0(N) when N >= 0 ->
+  bits0(N, 0).
+
 bits0(0, C) -> C;
 bits0(N, C) ->
-    bits0((N band (N-1)), C+1).
+  bits0((N band (N-1)), C+1).
 
 clear_extra_bits(N, _) when N =:= 0 ->
     N;

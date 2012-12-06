@@ -69,6 +69,10 @@
 -define(CS_CLUBS, 1).
 -define(CS_NONE, 0).
 
+%% 牌面的编码与解码 高8位存储牌面，低8位存储花色
+-define(POKER_ENCODE(Suit, Face), (Face bsl 8) bor Suit).
+-define(POKER_DECODE(Card), [Card band 16#ff, Card bsr 8]).
+
 %%% Hand combination
 
 -define(HC_HIGH_CARD, 0).

@@ -33,8 +33,8 @@ betting({timeout, _, ?MODULE}, Ctx = #texas{exp_seat = Exp}) ->
 betting(#cmd_raise{pid = PId}, Ctx = #texas{exp_seat = Exp}) when Exp#seat.pid /= PId -> 
   {continue, Ctx};
 
-%%% call
-betting(#cmd_raise{ amount = ?ZERO }, Ctx = #texas{exp_seat = Exp, exp_call = ?ZERO}) ->              % check
+%%% check
+betting(#cmd_raise{ amount = ?ZERO }, Ctx = #texas{exp_seat = Exp, exp_call = ?ZERO}) ->
   NotTimerCtx = cancel_timer(Ctx),
   CheckedCtx = game:bet({Exp, ?ZERO}, NotTimerCtx),
   next_turn(Exp, CheckedCtx);

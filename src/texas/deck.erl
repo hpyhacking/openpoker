@@ -4,7 +4,12 @@
 -include("openpoker.hrl").
 
 new() -> 
-  shuffle(make_deck()).
+  case op_common:get_env(deck, ?UNDEF) of
+    ?UNDEF ->
+      shuffle(make_deck());
+    Cards ->
+      hand:make_cards(Cards)
+  end.
 
 new(Cards) ->
   Cards.
@@ -36,7 +41,7 @@ make_deck() ->
            ?CS_DIAMONDS, 
            ?CS_HEARTS,
            ?CS_SPADES ],
-    [hand:make_card(Face, Suit) || Face <- L1, Suit <- L2].
+    [?POKER_ENCODE(Suit, Face) || Face <- L1, Suit <- L2].
 
 shuffle(Cards) ->
   random:seed(now()),

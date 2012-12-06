@@ -8,7 +8,7 @@ get_env(App, Key, Def) ->
   end.
 
 get_env(Key, Def) ->
-  get_env(genesis, Key, Def).
+  get_env(openpoker, Key, Def).
 
 get_status(NameOrProc) ->
   {status, _Proc, _Mod, SItem} = sys:get_status(NameOrProc),
