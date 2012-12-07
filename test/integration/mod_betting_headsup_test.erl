@@ -75,7 +75,7 @@ headsup_betting_one_call_one_check_test_() -> {setup, fun setup_normal/0, fun si
     end}.
 
 setup_normal() ->
-  setup([{blinds, []}, {op_mod_betting, [?GS_PREFLOP]}, {op_mod_betting, [?GS_FLOP]}, {stop, []}]).
+  setup([{op_mod_blinds, []}, {op_mod_betting, [?GS_PREFLOP]}, {op_mod_betting, [?GS_FLOP]}, {stop, []}]).
 
 setup(MixinMods) ->
   sim:setup(),

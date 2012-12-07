@@ -127,19 +127,19 @@ shutdown2_test_() -> {setup, fun setup_with_shutdown2/0, fun sim:clean/1, fun ()
     end}.
 
 setup_with_shutdown() ->
-  Mods = [{blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C 4C 4S ")]}, 
+  Mods = [{op_mod_blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C 4C 4S ")]}, 
     {deal_cards, [2, private]}, {deal_cards, [3, shared]}, {ranking, []},
     {op_mod_betting, [?GS_PREFLOP]}, {showdown, []}, {wait_players, []}],
   setup(Mods).
 
 setup_with_shutdown2() ->
-  Mods = [{blinds, []}, {rig, [hand:make_cards("3H 5H 7S 6S TD QD JD AS 2C")]}, 
+  Mods = [{op_mod_blinds, []}, {rig, [hand:make_cards("3H 5H 7S 6S TD QD JD AS 2C")]}, 
     {deal_cards, [2, private]}, {deal_cards, [3, shared]}, {ranking, []},
     {op_mod_betting, [?GS_PREFLOP]}, {deal_cards, [1, shared]}, {deal_cards, [1, shared]}, {showdown, []}, {wait_players, []}],
   setup(Mods).
 
 setup_with_rank() ->
-  setup([{blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C")]}, {deal_cards, [2, private]}, {deal_cards, [1, shared]}, {ranking, []}]).
+  setup([{op_mod_blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C")]}, {deal_cards, [2, private]}, {deal_cards, [1, shared]}, {ranking, []}]).
 
 setup(MixinMods) ->
   sim:setup(),

@@ -57,21 +57,21 @@ share_rank2_test_() -> {setup, fun setup_with_share_rank2/0, fun sim:clean/1, fu
 %%%
 
 setup_with_share_rank2() ->
-  MixinMods = [{blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C 4C 4S ")]}, {deal_cards, [2, private]}, {deal_cards, [3, shared]}, {ranking, []}],
+  MixinMods = [{op_mod_blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C 4C 4S ")]}, {deal_cards, [2, private]}, {deal_cards, [3, shared]}, {ranking, []}],
   setup(MixinMods).
 
 setup_with_share_rank() ->
-  MixinMods = [{blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C")]}, {deal_cards, [2, private]}, {deal_cards, [1, shared]}, {ranking, []}],
+  MixinMods = [{op_mod_blinds, []}, {rig, [hand:make_cards("3H 4H 3D 4D 3C")]}, {deal_cards, [2, private]}, {deal_cards, [1, shared]}, {ranking, []}],
   setup(MixinMods).
 
 setup_with_deal() ->
-  MixinMods = [{blinds, []}, {deal_cards, [2, private]}, 
+  MixinMods = [{op_mod_blinds, []}, {deal_cards, [2, private]}, 
     {deal_cards, [1, shared]}, {deal_cards, [1, shared]}, {deal_cards, [1, shared]}],
   setup(MixinMods).
 
 setup_with_private_rank() ->
   RigCards = hand:make_cards("3H 4H 3D 4D"),
-  MixinMods = [{blinds, []}, {rig, [RigCards]}, {deal_cards, [2, private]}, {ranking, []}],
+  MixinMods = [{op_mod_blinds, []}, {rig, [RigCards]}, {deal_cards, [2, private]}, {ranking, []}],
   setup(MixinMods).
 
 setup(MixinMods) ->

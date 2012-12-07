@@ -51,7 +51,7 @@ auto_compute_seat_sn_test_() -> {setup, fun setup_empty/0, fun sim:clean/1, fun 
 %%%
 
 setup_blind() ->
-  setup([{blinds, []}]).
+  setup([{op_mod_blinds, []}]).
 
 setup_empty() ->
   setup([]).

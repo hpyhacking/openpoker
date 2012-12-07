@@ -173,7 +173,7 @@ headsup_betting_and_leave_test_() -> {setup, fun setup_normal/0, fun sim:clean/1
     end}.
 
 setup_normal() ->
-  setup([{blinds, []}, {op_mod_betting, [?GS_PREFLOP]}, {op_mod_betting, [?GS_FLOP]}]).
+  setup([{op_mod_blinds, []}, {op_mod_betting, [?GS_PREFLOP]}, {op_mod_betting, [?GS_FLOP]}]).
 
 setup(MixinMods) ->
   sim:setup(),

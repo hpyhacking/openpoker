@@ -88,7 +88,7 @@
 -define(DEF_MOD, [
     {wait_players, []},
     %% blind rules
-    {blinds, []},
+    {op_mod_blinds, []},
     %% deal 2 cards to each player
     {deal_cards, [2, private, 500]}, 
     {ranking, []}, 
@@ -155,13 +155,13 @@
     required = 2,               %% players required to start a game
     joined = 0,                 %% joined players count
     max_joined = 0,             %% can joined players limit max
-    b = ?GAME_UNDEF,                 %% button
-    sb = ?GAME_UNDEF,                %% small blind
-    bb = ?GAME_UNDEF,                %% big blind
+    b = ?GAME_UNDEF,            %% button
+    sb = ?GAME_UNDEF,           %% small blind
+    bb = ?GAME_UNDEF,           %% big blind
     sb_amt = 0,
     bb_amt = 0,
     headsup = false,
-    max_betting = 0,            %% 当前游戏阶段最后一次加注后的金额
+    max_betting = 0,            %% current stage latest raised amount
     exp_seat = none,            %% expecting seat
     exp_call = 0,               %% expecting call amount
     exp_min = 0,                %% expecting raise min amount

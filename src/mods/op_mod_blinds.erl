@@ -1,4 +1,4 @@
--module(blinds).
+-module(op_mod_blinds).
 -behaviour(op_exch_mod).
 -export([start/2, dispatch/2]).
 
