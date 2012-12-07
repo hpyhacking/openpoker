@@ -112,9 +112,9 @@ ask_for_bet(H = #seat{inplay = Inplay, sn = SN, bet = B}, Ctx = #texas{sb = SB, 
 when S =:= ?GS_PREFLOP, SN =:= SB#seat.sn, B =:= Ctx#texas.sb_amt ->
   ask_for_bet(H, Ctx, {Ctx#texas.max_betting, Inplay});
 
-ask_for_bet(H = #seat{inplay = Inplay, sn = SN, bet = B}, Ctx = #texas{bb = BB, limit = Limit, stage = S})
+ask_for_bet(H = #seat{inplay = Inplay, sn = SN, bet = B}, Ctx = #texas{bb = BB, stage = S})
 when S =:= ?GS_PREFLOP, SN =:= BB#seat.sn, B =:= Ctx#texas.bb_amt ->
-  ask_for_bet(H, Ctx, {Limit#limit.big, Inplay});
+  ask_for_bet(H, Ctx, {Ctx#texas.max_betting, Inplay});
 
 ask_for_bet(H = #seat{inplay = Inplay}, Ctx = #texas{}) ->
   ask_for_bet(H, Ctx, {Ctx#texas.max_betting - H#seat.bet , Inplay}).
