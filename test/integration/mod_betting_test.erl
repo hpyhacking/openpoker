@@ -34,13 +34,13 @@ normal_betting_test_() -> {setup, fun setup_normal/0, fun sim:clean/1, fun () ->
 
         %% B CALL 20
         sim:check_notify_actor(B, Players),
-        ?assertMatch(#notify_betting{call = 20, min = 20, max = 60}, sim_client:head(?JACK)),
+        ?assertMatch(#notify_betting{call = 20, min = 40, max = 60}, sim_client:head(?JACK)),
         sim_client:send(?JACK, #cmd_raise{game = ?GAME, amount = 0}),
         sim:check_notify_raise(20, 0, Players),
 
         %% SB CALL 20
         sim:check_notify_actor(SB, Players),
-        ?assertMatch(#notify_betting{call = 20, min = 20, max = 60}, sim_client:head(?TOMMY)),
+        ?assertMatch(#notify_betting{call = 20, min = 40, max = 60}, sim_client:head(?TOMMY)),
         sim_client:send(?TOMMY, #cmd_raise{game = ?GAME, amount = 0}),
         sim:check_notify_raise(20, 0, Players),
 

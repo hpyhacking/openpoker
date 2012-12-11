@@ -50,4 +50,4 @@ blind([], Ctx) -> Ctx;
 blind([{Seat = #seat{sn = SN}, Amt}|T], Ctx = #texas{}) ->
   NewCtx = game:bet({Seat, Amt}, Ctx),
   RecoverSeats = seat:set(SN, ?PS_PLAY, NewCtx#texas.seats),
-  blind(T, NewCtx#texas{seats = RecoverSeats}).
+  blind(T, NewCtx#texas{max_betting = Amt, seats = RecoverSeats}).

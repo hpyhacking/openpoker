@@ -274,3 +274,17 @@ player_state(PID) ->
 
 setup_game(Conf) ->
   op_games_sup:start_child(Conf).
+
+check_actor(SN, {Call, Min, Max}, Players) ->
+  {Key, _ID} = lists:nth(SN, Players),
+  sim:check_notify_actor(SN, Players),
+  ?assertMatch(#notify_betting{call = Call, min = Min, max = Max}, sim_client:head(Key)).
+
+check_raise(SN, check, {Call, Raise}, Players) ->
+  check_raise(SN, 0, {Call, Raise}, Players);
+check_raise(SN, call, {Call, Raise}, Players) ->
+  check_raise(SN, 0, {Call, Raise}, Players);
+check_raise(SN, Amount, {Call, Raise}, Players) ->
+  {Key, _ID} = lists:nth(SN, Players),
+  sim_client:send(Key, #cmd_raise{game = ?GAME, amount = Amount}),
+  sim:check_notify_raise(Call, Raise, Players).

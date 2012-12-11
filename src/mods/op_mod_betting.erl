@@ -39,32 +39,33 @@ betting(#cmd_raise{ amount = ?ZERO }, Ctx = #texas{exp_seat = Exp, exp_call = ?Z
   CheckedCtx = game:bet({Exp, ?ZERO}, NotTimerCtx),
   next_turn(Exp, CheckedCtx);
 
-%%% all_in
+%%% all-in
 betting(#cmd_raise{ amount = ?ZERO }, Ctx = #texas{exp_seat = Exp, exp_call = ExpCall})
 when Exp#seat.inplay < ExpCall ->
   NotTimerCtx = cancel_timer(Ctx),
   PooredCtx = game:bet({Exp, Exp#seat.inplay}, NotTimerCtx),
   next_turn(Exp, PooredCtx);
 
-%%% call & check
+%%% call
 betting(#cmd_raise{ amount = ?ZERO }, Ctx = #texas{exp_seat = Exp, exp_call = ExpCall}) ->
   NotTimerCtx = cancel_timer(Ctx),
   CalledCtx = game:bet({Exp, ExpCall}, NotTimerCtx),
   next_turn(Exp, CalledCtx);
 
-%%% raise
-betting(R = #cmd_raise{ amount = Raise}, Ctx = #texas{exp_min = Min, exp_max = Max}) when Raise < Min; Raise > Max  ->
+%%% error cmd_raise
+betting(#cmd_raise{ pid = Pid, amount = ?ZERO }, Ctx) ->
   NotTimerCtx = cancel_timer(Ctx),
-  betting(#cmd_fold{ pid = R#cmd_raise.pid }, NotTimerCtx);
+  betting(#cmd_fold{ pid = Pid }, NotTimerCtx);
 
-%%% raise & all_in
+%%% raise or all-in
 betting(#cmd_raise{ amount = Raise}, Ctx = #texas{exp_seat = Exp, exp_call = Call}) -> 
   NotTimerCtx = cancel_timer(Ctx),
   BettedCtx = game:bet({Exp, Call, Raise}, NotTimerCtx),
   BettedSeats = seat:lookup(?PS_BET, BettedCtx#texas.seats),
   ResetedSeats = reset_seat(Exp#seat.sn, BettedSeats, BettedCtx#texas.seats),
-  RaisedCtx = BettedCtx#texas{max_betting = BettedCtx#texas.max_betting + Call + Raise, seats = ResetedSeats},
-  next_turn(Exp, RaisedCtx);
+  next_turn(Exp, BettedCtx#texas{
+      max_betting = BettedCtx#texas.max_betting + Raise, 
+      seats = ResetedSeats});
 
 %%%
 %%% fold
@@ -107,30 +108,28 @@ ask([_H], Ctx = #texas{}) ->
 ask([H|_], Ctx = #texas{}) ->
   ask_for_bet(H, Ctx).
   
-% small blind fix big blind
-ask_for_bet(H = #seat{inplay = Inplay, sn = SN, bet = B}, Ctx = #texas{sb = SB, stage = S})
-when S =:= ?GS_PREFLOP, SN =:= SB#seat.sn, B =:= Ctx#texas.sb_amt ->
-  ask_for_bet(H, Ctx, {Ctx#texas.max_betting, Inplay});
-
-ask_for_bet(H = #seat{inplay = Inplay, sn = SN, bet = B}, Ctx = #texas{bb = BB, stage = S})
-when S =:= ?GS_PREFLOP, SN =:= BB#seat.sn, B =:= Ctx#texas.bb_amt ->
-  ask_for_bet(H, Ctx, {Ctx#texas.max_betting, Inplay});
-
-ask_for_bet(H = #seat{inplay = Inplay}, Ctx = #texas{}) ->
-  ask_for_bet(H, Ctx, {Ctx#texas.max_betting - H#seat.bet , Inplay}).
-
-ask_for_bet(H = #seat{}, Ctx = #texas{limit = Limit}, {?ZERO, Inplay}) ->
-  ask_for_bet(H, Ctx, {Limit#limit.big, Inplay});
-
-ask_for_bet(H = #seat{sn = SN, pid = PID}, Ctx = #texas{gid = Id}, {Min, Inplay}) ->
-  ExpAmt = Ctx#texas.max_betting - H#seat.bet,
-  Max = Inplay - ExpAmt,
+ask_for_bet(H = #seat{sn = SN, pid = PID, inplay = Inplay}, Ctx = #texas{gid = Id, max_betting = MaxBet}) ->
+  Call = MaxBet - H#seat.bet,
+  %% 当前最大下注额如果为0
+  %% 则加注的最小额为大盲
+  Min = case MaxBet of
+    0 ->
+      Ctx#texas.bb_amt;
+    _ ->
+      MaxBet
+  end,
+  %% 如果玩家筹码可以跟注
+  %% 则最大加注额为下注后的剩余筹码
+  Max = case Inplay of
+    Inplay when Inplay >= Call ->
+      Inplay - Call;
+    Inplay ->
+      Inplay
+  end,
   game:broadcast(#notify_actor{ game = Id, player = PID, sn = SN, timeout = Ctx#texas.timeout }, Ctx),
-  player:notify(H#seat.process, #notify_betting{ game = Id, player = PID, sn = SN, call = ExpAmt, min = Min, max = Max}),
-
+  player:notify(H#seat.process, #notify_betting{ game = Id, player = PID, sn = SN, call = Call, min = Min, max = Max}),
   TimerCtx = start_timer(Ctx),
-  ExpCtx = TimerCtx#texas{ exp_seat = H, exp_call = ExpAmt, exp_min = Min, exp_max = Max },
-
+  ExpCtx = TimerCtx#texas{ exp_seat = H, exp_call = Call, exp_min = Min, exp_max = Max },
   {next, betting, ExpCtx}.
   
 next_turn(At = #seat{}, Ctx = #texas{seats = S}) ->
