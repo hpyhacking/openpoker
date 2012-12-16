@@ -4,30 +4,44 @@
 -include("openpoker.hrl").
 -include("openpoker_test.hrl").
 
+set_buyin([], [], R) -> R;
+set_buyin([H|PT], [B|BT], R) ->
+  set_buyin(PT, BT, R ++ [erlang:append_element(H, B)]).
+
 join_and_start_game(Players) ->
   join_and_start_game(Players, 1),
+  sim:clean_start_game(Players).
+
+join_and_start_game(Players, Buyin) when is_list(Buyin) ->
+  BP = sim:set_buyin(Players, Buyin, []),
+  join_and_start_game(BP, 1),
+  sim:clean_start_game(Players);
+join_and_start_game([], _SN) -> ok;
+join_and_start_game([{Key, Id}|T], SN) ->
+  join_and_start_game([{Key, Id, 100}|T], SN);
+join_and_start_game([{Key, _Id, BuyIn}|T], SN) ->
+  sim_client:send(Key, #cmd_watch{game = ?GAME}),
+  GameDetail = sim_client:head(Key),
+  ?assertMatch(#notify_game_detail{}, GameDetail),
+  check_notify_seat(Key, GameDetail#notify_game_detail.seats),
+  ?assertMatch(#notify_watch{}, sim_client:head(Key)),
+
+  case SN of
+    ?UNDEF ->
+      sim_client:send(Key, #cmd_join{game = ?GAME, sn = SN, buyin = BuyIn}),
+      join_and_start_game(T, ?UNDEF);
+    SN ->
+      sim_client:send(Key, #cmd_join{game = ?GAME, sn = 0, buyin = BuyIn}),
+      join_and_start_game(T, SN + 1)
+  end.
+
+clean_start_game(Players) ->
   clean_box(Players),
   go_go_go(),
   ?SLEEP,
   ?SLEEP,
   ?SLEEP,
   check_notify_start(Players).
-
-join_and_start_game([], _SN) -> ok;
-join_and_start_game([{Key, _Id}|T], SN) ->
-  sim_client:send(Key, #cmd_watch{game = ?GAME}),
-  GameDetail = sim_client:head(Key),
-  ?assertMatch(#notify_game_detail{}, GameDetail),
-  check_notify_seat(Key, GameDetail#notify_game_detail.seats),
-  ?assertMatch(#notify_watch{}, sim_client:head(Key)),
-  case SN of
-    ?UNDEF ->
-      sim_client:send(Key, #cmd_join{game = ?GAME, sn = SN, buyin = 100}),
-      join_and_start_game(T, ?UNDEF);
-    SN ->
-      sim_client:send(Key, #cmd_join{game = ?GAME, sn = 0, buyin = 100}),
-      join_and_start_game(T, SN + 1)
-  end.
 
 clean_box([]) -> ok;
 clean_box([{Key, _}|T]) ->
