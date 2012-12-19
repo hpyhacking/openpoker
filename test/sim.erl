@@ -294,6 +294,8 @@ check_actor(SN, {Call, Min, Max}, Players) ->
   sim:check_notify_actor(SN, Players),
   ?assertMatch(#notify_betting{call = Call, min = Min, max = Max}, sim_client:head(Key)).
 
+check_raise(SN, allin, {Call, Raise}, Players) ->
+  check_raise(SN, 0, {Call, Raise}, Players);
 check_raise(SN, check, {Call, Raise}, Players) ->
   check_raise(SN, 0, {Call, Raise}, Players);
 check_raise(SN, call, {Call, Raise}, Players) ->

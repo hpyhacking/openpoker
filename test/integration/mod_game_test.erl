@@ -54,7 +54,7 @@ shutdown_test_() -> {setup, fun setup_with_shutdown/0, fun sim:clean/1, fun () -
         sim:check_notify_stage(?GS_PREFLOP, Players),
         sim:turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
         sim:turnover_player_raise({?TOMMY, Players}, { 0, 20, 80}, 70),
-        sim:turnover_player_raise({?JACK, Players},  {70, 90, 10}, 0),
+        sim:turnover_player_raise({?JACK, Players},  {70, 0, 10}, 0),
         sim:check_notify_stage_end(?GS_PREFLOP, Players),
 
         ?assertMatch(#notify_cards{player = ?TOMMY_ID }, sim_client:head(?JACK)),
@@ -108,7 +108,7 @@ shutdown2_test_() -> {setup, fun setup_with_shutdown2/0, fun sim:clean/1, fun ()
         sim:check_notify_stage(?GS_PREFLOP, Players),
         sim:turnover_player_raise({?JACK, Players},  {10, 20, 80}, 0),
         sim:turnover_player_raise({?TOMMY, Players}, { 0, 20, 80}, 70),
-        sim:turnover_player_raise({?JACK, Players},  {70, 90, 10}, 0),
+        sim:turnover_player_raise({?JACK, Players},  {70, 0, 10}, 0),
         sim:check_notify_stage_end(?GS_PREFLOP, Players),
 
         sim:check_shared(1, Players),

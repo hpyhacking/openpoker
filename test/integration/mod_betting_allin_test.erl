@@ -9,7 +9,7 @@
 -define(BB_SN, 3).
 
 normal_allin_test_() -> {setup, fun setup_normal/0, fun sim:clean/1, fun () ->
-  sim:check_actor(?B_SN, {20, 20, 0}, ?PP),
+  sim:check_actor(?B_SN, {20, 0, 0}, ?PP),
   sim:check_raise(?B_SN, call, {20, 0}, ?PP),
 
   sim:check_actor(?SB_SN, {10, 20, 60}, ?PP),
@@ -19,6 +19,12 @@ normal_allin_test_() -> {setup, fun setup_normal/0, fun sim:clean/1, fun () ->
   sim:check_raise(?BB_SN, 20, {0, 20}, ?PP),
 
   sim:check_actor(?SB_SN, {20, 40, 40}, ?PP),
+  sim:check_raise(?SB_SN, 40, {20, 40}, ?PP),
+
+  sim:check_actor(?BB_SN, {0, 0, 0}, ?PP),
+  sim:check_raise(?BB_SN, 0, {20, 0}, ?PP),
+
+  sim:check_notify_stage_end(?GS_PREFLOP, ?PP),
 
   ?assertEqual(ok, ok)
 end}.

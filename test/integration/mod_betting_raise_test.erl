@@ -86,17 +86,17 @@ normal_raise_test_() -> {setup, fun setup_normal/0, fun sim:clean/1, fun () ->
   sim:check_actor(B_SN, {0, 20, 60}, Players),
   sim:check_raise(B_SN, 40, {0, 40}, Players),
 
-  sim:check_actor(SB_SN, {40, 40, 20}, Players),
+  sim:check_actor(SB_SN, {40, 0, 20}, Players),
   sim:check_raise(SB_SN, call, {40, 0}, Players),
 
-  sim:check_actor(BB_SN, {40, 40, 20}, Players),
+  sim:check_actor(BB_SN, {40, 0, 20}, Players),
   sim:check_raise(BB_SN, 20, {40, 20}, Players),
 
-  sim:check_actor(B_SN, {20, 60, 0}, Players),
-  sim:check_raise(B_SN, call, {20, 0}, Players),
+  sim:check_actor(B_SN, {20, 0, 0}, Players),
+  sim:check_raise(B_SN, allin, {20, 0}, Players),
 
-  sim:check_actor(SB_SN, {20, 60, 0}, Players),
-  sim:check_raise(SB_SN, call, {20, 0}, Players),
+  sim:check_actor(SB_SN, {20, 0, 0}, Players),
+  sim:check_raise(SB_SN, allin, {20, 0}, Players),
 
   sim:check_notify_stage_end(?GS_FLOP, Players),
   ?assertMatch(ok, ok)
