@@ -133,7 +133,7 @@ rank_straight5_test() ->
 rank_flush1_test() ->
     H = ?MK_RANK("4D JD 5D JC QD 2D 7D"),
     ?assertEqual(?HC_FLUSH, H#hand.rank),
-    ?assertEqual(2#00110001011010, H#hand.high1),
+    ?assertEqual(2#00110001011000, H#hand.high1),
     ?assertEqual(0, H#hand.score).
 
 rank_flush2_test() ->

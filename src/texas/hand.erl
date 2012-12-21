@@ -128,7 +128,8 @@ is_flush(Hand, Mask, [H|T], Suit) ->
     Count < 5 ->
       is_flush(Hand, Mask, T, Suit + 1);
     true ->
-      Hand#hand{ rank = ?HC_FLUSH, high1 = Score, suit = Suit }
+      High1 = bits:clear_extra_bits(Score, 5),
+      Hand#hand{ rank = ?HC_FLUSH, high1 = High1, suit = Suit }
   end;
 
 is_flush(_, _, [], _) ->
