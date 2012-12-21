@@ -4,6 +4,8 @@
 
 -include("openpoker.hrl").
 
+-define(REWARD_TIMEOUT, 2000).
+
 %%%
 %%% callback
 %%%
@@ -54,7 +56,9 @@ do_broadcast_ranks([#seat{pid = PId, hand = Hand, sn = SN}|T], Ctx = #texas{gid 
 
 reward_winners([], Ctx) -> Ctx;
 reward_winners([{H = #hand{}, Amt}|T], Ctx) -> 
-  reward_winners(T, game:reward(H, Amt, Ctx)).
+  NewCtx = game:reward(H, Amt, Ctx),
+  timer:sleep(?REWARD_TIMEOUT),
+  reward_winners(T, NewCtx).
 
 kick_poor_players([], Ctx) -> Ctx;
 kick_poor_players([#seat{pid = PId, sn = SN, inplay = Inplay}|T], Ctx = #texas{seats = S, limit = L})
@@ -63,8 +67,6 @@ when L#limit.big > Inplay ->
   kick_poor_players(T, Ctx#texas{seats = seat:set(SN, ?PS_OUT, S)});
 kick_poor_players([_|T], Ctx = #texas{}) ->
   kick_poor_players(T, Ctx).
-      
-
 
 %% fuck code is here, winners comput to depend on record field position
 %% e.g lists:keysort(5, M) is sort by hand record five point field rank
