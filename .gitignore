@@ -1,4 +1,5 @@
 .eunit
+.DS_Store
 deps
 *.o
 *.beam
