@@ -20,7 +20,7 @@
 
 OpenPoker support multi network connection, eg: WebSocket, Socket.
 
-Connection with client by some custom protocols, please check on [wiki](wiki/Protocols).
+Connection with client by some custom protocols, please check on [wiki](https://github.com/hpyhacking/openpoker/wiki/Protocols).
 
 # License
 
