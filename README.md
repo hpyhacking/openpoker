@@ -16,6 +16,12 @@
 - Manage Site based ChicagoBoss MVC Web Framework.
 - Script tools generate protocol code by need to change.
 
+#### Protocols
+
+OpenPoker support multi network connection, eg: WebSocket, Socket.
+
+Connection with client by some custom protocols, please check on [wiki](wiki/Protocols).
+
 # License
 
 OpenPoker is released under a Creative Commons NonCommercial Licence.
